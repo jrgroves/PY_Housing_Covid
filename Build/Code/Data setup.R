@@ -11,10 +11,12 @@ library(tidycensus)
 
 #Read in Raw Sales Data from PY and Others
     raw.data<-read_excel("./Build/Input/Housing sales data.xlsx")
-    
+   
     data <- raw.data %>%
-      mutate(TMK = substr(gsub("-","",ParcelNumb),1,9),
-             TMK.condo = substr(gsub("-","",ParcelNumb),10,13))
+      mutate(TMK = substr(gsub("-","",ParcelNumb),2,9),
+             TMK.condo = substr(gsub("-","",ParcelNumb),10,13)) %>%
+      filter(Bathrooms != 0)
+
     
     map.1<-st_read(dsn="./Build/Input/Maps/oahtmk.shp")
     
@@ -37,12 +39,6 @@ library(tidycensus)
                       year = 2021,
                       state = 15,
                       geometry = TRUE)
-    
-    
-    cen.map <- census %>%
-      select(GEOID, geometry) %>%
-      distinct() %>%
-      st_transform(., crs=st_crs(map.sale))
 
 #Create maps for visualizations and to obtain Census link
     map.data <- data %>%
@@ -56,6 +52,11 @@ library(tidycensus)
                               TRUE ~ 0)) %>%
       filter(!is.na(TAXPIN))
     
+    cen.map <- census %>%
+      select(GEOID, geometry) %>%
+      distinct() %>%
+      st_transform(., crs=st_crs(map.sale))
+    
     sale.geo <- map.sale %>%
       filter(Sale == 1) %>%
       st_intersection(., cen.map) %>%
@@ -63,8 +64,9 @@ library(tidycensus)
 
 #Create core data set
     cen.data <- census %>%
+      st_drop_geometry() %>%
       select(GEOID, variable, estimate) %>%
-      pivot_wider(names_from = variable, values_from = estimate, id_cols = GEOID) %>%
+      pivot_wider(names_from = "variable", values_from = "estimate", id_cols = "GEOID") %>%
       filter(population != 0,
              households != 0) %>%
       mutate(per_white = white/population,
@@ -81,3 +83,13 @@ library(tidycensus)
       left_join(., cen.data, by = "GEOID") %>%
       filter(!is.na(population))
 
+#Setup House Data Fields
+    
+    char.data.sfh <- data %>%
+      filter(PropertyTy=="Single Family",
+             Bedrooms != 0) %>%
+      select(ParcelNumb, BathsFull, BathsHalf, Bathrooms, Bedrooms, SqftTotal, FloodZone,YearBuilt,
+             StoriesTyp, Zoning, PropertyTy, Flooring, Roof, SQFTRoofed, YearRemode, )
+    
+    price.data <- data %>%
+      select(TMK, TMK.condo, ClosePrice, ListingCon, ListPrice, year, )
