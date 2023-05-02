@@ -14,7 +14,8 @@ library(tidycensus)
    
     data <- raw.data %>%
       mutate(TMK = substr(gsub("-","",ParcelNumb),2,9),
-             TMK.condo = substr(gsub("-","",ParcelNumb),10,13)) %>%
+             TMK.condo = substr(gsub("-","",ParcelNumb),10,13),
+             TMK = paste0("1",TMK)) %>%
       filter(Bathrooms != 0)
 
     
@@ -47,20 +48,15 @@ library(tidycensus)
       distinct() 
     
     map.sale <- map %>%
-      full_join(., map.data, by="TMK") %>%
-      mutate(Sale = case_when(Sale == 1 ~ 1,
-                              TRUE ~ 0)) %>%
-      filter(!is.na(TAXPIN))
+      full_join(., map.data, by="TMK")  %>%
+      filter(!is.na(Sale))
     
     cen.map <- census %>%
       select(GEOID, geometry) %>%
       distinct() %>%
-      st_transform(., crs=st_crs(map.sale))
-    
-    sale.geo <- map.sale %>%
-      filter(Sale == 1) %>%
-      st_intersection(., cen.map) %>%
-      select(TMK, GEOID)
+      st_transform(., crs=st_crs(map.sale))  %>%
+      st_intersection(., map.sale)  %>%
+      select(TMK, GEOID, Sale)
 
 #Create core data set
     cen.data <- census %>%
@@ -79,17 +75,35 @@ library(tidycensus)
              per_renter = owner/occupied)
     
     core <- data %>%
-      left_join(., sale.geo, by = "TMK") %>%
+      left_join(., cen.map, by = "TMK") %>%
       left_join(., cen.data, by = "GEOID") %>%
-      filter(!is.na(population))
+      filter(!is.na(population)) %>%
+      distinct()
 
 #Setup House Data Fields
     
-    char.data.sfh <- data %>%
-      filter(PropertyTy=="Single Family",
-             Bedrooms != 0) %>%
-      select(ParcelNumb, BathsFull, BathsHalf, Bathrooms, Bedrooms, SqftTotal, FloodZone,YearBuilt,
-             StoriesTyp, Zoning, PropertyTy, Flooring, Roof, SQFTRoofed, YearRemode, )
+
+    
+    
     
     price.data <- data %>%
-      select(TMK, TMK.condo, ClosePrice, ListingCon, ListPrice, year, )
+      select(TMK, TMK.condo, ClosePrice, ListingCon, ListPrice, year, LandTenure )
+    
+    land.data <- data %>%
+      select(TMK, TMK.condo, Zoning, View, Topography, RoadFronta, PropertyFr, FloodZone, ParkingFea,
+             ParkingTot, Parking, PostalCode)
+    
+    covid.data<-data %>%
+      select(TMK, TMK.condo, covid, Covidcases)
+    
+    school.data <- data %>%
+      select(TMK, TMK.condo, Elementary, HighSchool, MiddleOrJu)
+    
+    user.data <- data %>%
+      select(TMK, TMK.condo, rail, '1mile', lnrail, golf, lngolf, preschool, lnpreschool, privateschool,
+             lnprivate, publicschool, lnpublic, hospital, lnhospital, park, lnpark, lnocean,
+             airport, lnairport, wetland, lnwetland)
+    
+    assoc.data <- data %>%
+      select(TMK, TMK.condo, Associatio, Associat_1, Associat_2, Associat_3)
+    
