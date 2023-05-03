@@ -20,7 +20,8 @@ data <- raw.data %>%
 char.data <- data %>%
   select(TMK, TMK.condo, BuildingNa, Constructi, BathsFull, BathsHalf, Bedrooms, SqftTotal, 
          YearBuilt, YearRemode, StoriesTyp, Zoning, PropertyTy, Flooring, Roof, SQFTRoofed,
-         ElevatorsN, PropertyCo, SQFTGarage, PoolFeatur, Amenities, Architectu) %>%
+         ElevatorsN, PropertyCo, SQFTGarage, PoolFeatur, Amenities, Architectu, year) %>%
+  mutate(ID = paste0(TMK, TMK.condo, ".", year)) %>%
   distinct() %>%
   filter(!is.na(StoriesTyp),
          !is.na(SqftTotal),
@@ -107,24 +108,35 @@ char.data <- data %>%
   select(-PropertyCo) %>%
   mutate(pool = case_when(is.na(PoolFeatur) ~ 0,
                           TRUE ~ 1)) %>%
-  select(-PoolFeatur, -Amenities, -Flooring) %>%
+  select(-PoolFeatur, -Amenities, -Flooring, -Constructi) %>%
   filter(YearBuilt > 20) %>%
   mutate(YearBuilt = case_when(YearBuilt == 1070 ~ 1970,
                                YearBuilt == 197 ~ 1970,
                                TRUE ~ YearBuilt),
          YearRemode = case_when(YearRemode == 1016 ~ 1916,
                                 TRUE ~ YearRemode)) %>%
-  filter(YearBuilt < YearRemode | YearRemode == 0) 
+  filter(YearBuilt < YearRemode | YearRemode == 0) %>%
+  mutate(BuildingNa = str_to_title(BuildingNa),
+         BuildingNa = case_when(BuildingNa == 'Eden At Haiku Woods, A*' ~ 'Eden At Haiku Woods A',
+                                grepl("Hawaii Kai Cp", BuildingNa, fixed=TRUE) ~ "Hawaii Kai Condo",
+                                grepl("Hawaii Kai Condo", BuildingNa, fixed=TRUE) ~ "Hawaii Kai Condo",
+                                BuildingNa == 'Ke Aina Kai Townhome*' ~ 'Ke Aina Kai Townhomes*',
+                                BuildingNa == 'Ke Noho Kai*' ~ "Ke Noho Kai Townhomes*",
+                                BuildingNa == 'Lalea At Hawaii Kai Iii' ~ 'Lalea At Hawaii Kai 3',
+                                BuildingNa == 'Montecito/Tuscany*' ~ "Montecito/Tuscany",
+                                grepl("@Mililani", BuildingNa, fixed=TRUE) ~ "At Mililani",
+                                BuildingNa == 'Northpointe Ii' ~ 'Northpointe 2',
+                                grepl('Parkview Village', BuildingNa, fixed=TRUE) ~ "Parkview Village",
+                                BuildingNa == "Parkview Village*" ~ "Parkview Village",
+                                BuildingNa == "Shores At Suncrest I" ~ "Shores At Suncrest 1",
+                                BuildingNa == "Spruce Ridge Villas*" ~ "Spruce Ridge Villas",
+                                BuildingNa == "Terrazza" ~ "Terraza",
+                                BuildingNa == "Town Homes @ Frwys Edge*" ~ "Town Homes At Frwys Edge",
+                                BuildingNa == "Vineyard*" ~ "Vineyard Apts",
+                                BuildingNa == "Waikiki Marina Condo*" ~ "Waikiki Marina Condominium",
+                                BuildingNa == "Waikiki Parkway*" ~ "Waikiki Parkway Apts",
+                                TRUE ~ BuildingNa)) %>%
+  filter(SQFTGarage < 5001)
 
+save(char.data, file="./Build/Output/Char.RData")
 
-b<- char.data %>%
-  mutate(parid=paste(TMK, TMK.condo, sep=".")) %>%
-  group_by(parid) %>%
-  count() %>%
-  filter(n > 1) %>%
-  arrange(parid)
-
-c<-char.data %>%
-  mutate(parid=paste(TMK, TMK.condo, sep=".")) %>%
-  right_join(., b, by="parid") %>%
-  arrange(parid)
