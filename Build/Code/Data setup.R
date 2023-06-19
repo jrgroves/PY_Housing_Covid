@@ -10,23 +10,29 @@ library(sf)
 library(tidycensus)
 
 #Read in Raw Sales Data from PY and Others
-    raw.data<-read_excel("./Build/Input/Housing sales data.xlsx")
+    raw.data<-read_excel("./Build/Input/Sales Data 1.xlsx")
     
-    cpi <- read.csv("./Build/Input/CPI.csv") 
-      cpi <- cpi %>%
-        mutate(Series = gsub("\\\n", "", Series.ID)) %>%
-        select(-Series.ID)
+    raw.data$CloseDate<-as.POSIXlt(raw.data$CloseDate, format="%m_%d_%Y",tz="UTC")
+    raw.data$ListingContractDate<-as.POSIXlt(raw.data$ListingContractDate,format="%m_%d_%Y",tz="UTC")
+    
+    raw.data2<-read_excel("./Build/Input/Sales Data 2.xlsx")
+    
+  #cpi <- read.csv("./Build/Input/CPI.csv") 
+   #   cpi <- cpi %>%
+   #     mutate(Series = gsub("\\\n", "", Series.ID)) %>%
+   #     select(-Series.ID)
       
     map.1<-st_read(dsn="./Build/Input/Maps/oahtmk.shp")
-    map.s<-st_read(dsn="./Build/Input/Maps/School/Elementary_School_Areas.shp")
+    map.s<-st_read(dsn="./Build/Input/Maps/Elementary_School_Areas.shp")
 
 #Prepare Data
            
     data <- raw.data %>%
-      mutate(TMK = substr(gsub("-","",ParcelNumb),2,9),
-             TMK.condo = substr(gsub("-","",ParcelNumb),10,13),
+      bind_rows(raw.data2) %>%
+      mutate(TMK = substr(gsub("-","",ParcelNumber),2,9),
+             TMK.condo = substr(gsub("-","",ParcelNumber),10,13),
              TMK = paste0("1",TMK)) %>%
-      filter(Bathrooms != 0)
+      filter(BathsTotal != 0)
 
     map <- map.1 %>%
       select(TMK9TXT, TAXPIN, REC_AREA_S, TYPE, STREET_PAR, GISAcres) %>%
@@ -36,16 +42,17 @@ library(tidycensus)
 #Price Data####
     
     data <- data %>%
-      mutate(CloseDate = as.Date(CloseDate),
-             ListingCon = as.Date(ListingCon),
-             dom = as.numeric(CloseDate - ListingCon),
+      mutate(dom = as.numeric((CloseDate - ListingContractDate))/86400,
+             year = year(CloseDate),
              Clo.mon = month(as.POSIXlt(CloseDate, format="%Y/%m/%d")),
              Series = case_when(Clo.mon < 7 ~ "HALF1",
                                 Clo.mon > 6 ~ "HALF2",
                                 TRUE ~ "0"),
              Series = paste0(Series, year)) %>%
       filter(dom >= 0) %>%
-      select(-Clo.mon) %>%
+      select(-Clo.mon) 
+    
+    %>%
       left_join(., cpi, by="Series") %>%
       mutate(real.hw.price = (ListPrice*342.499)/Hawii,
              real.wr.price = (ListPrice*356.733)/Western,
@@ -63,10 +70,10 @@ library(tidycensus)
 
     data <- data %>%
       distinct() %>%
-      filter(!is.na(StoriesTyp),
+      filter(!is.na(StoriesType),
              !is.na(SqftTotal),
              !is.na(YearBuilt)) %>%
-      rename("Stories" = "StoriesTyp") %>%
+      rename("Stories" = "StoriesType") %>%
       mutate(Basement = case_when(grepl("Basement", Stories, fixed = TRUE) ~ 1,
                                   TRUE ~ 0 ),
              Split = case_when(grepl("Split Level", Stories, fixed=TRUE) ~ 1,
@@ -87,7 +94,7 @@ library(tidycensus)
                                  Number == 1 ~ "Multi",
                                  TRUE ~ "Other")) %>%
       select(-c("One", "Two", "Three", "Number")) %>%
-      mutate(BuildType = Architectu,
+      mutate(BuildType = ArchitecturalStyle,
              BuildType = gsub("No Unit Above or Below, ", "", BuildType),
              BuildType = gsub("No Unit Above or Below,", "", BuildType),
              BuildType = gsub(", No Unit Above or Below", "", BuildType),
@@ -109,7 +116,7 @@ library(tidycensus)
                                     TRUE ~ 0),
              WalkUP = case_when(grepl("Walk-Up", BuildType, fixed=TRUE) ~ 1,
                                 TRUE ~ 0)) %>%
-      select(-BuildType, -Architectu) %>%
+      select(-BuildType, -ArchitecturalStyle) %>%
       mutate(LUC = case_when(grepl("Residential", Zoning, fixed = TRUE) ~ "Residential",
                              grepl("Indust", Zoning, fixed = TRUE) ~ "Industrial",
                              grepl("Busin", Zoning, fixed = TRUE) ~ "Business",
@@ -124,7 +131,7 @@ library(tidycensus)
                              grepl("Presev", Zoning, fixed = TRUE) ~ "Preserve",
                              TRUE ~ "Other")) %>%
       select(-Zoning) %>%
-      mutate(PropertyCo = gsub("Above Average", "Blah", PropertyCo),
+      mutate(PropertyCo = gsub("Above Average", "Blah", PropertyCondition),
              cond = case_when(grepl("Tear Down", PropertyCo, fixed = TRUE) ~ "Tear Down",
                               TRUE ~ PropertyCo),
              cond = case_when(grepl("Tear Down", PropertyCo, fixed = TRUE) ~ "Tear Down",
@@ -145,18 +152,19 @@ library(tidycensus)
                               grepl("Average", PropertyCo, fixed = TRUE) ~ "Average",
                               grepl("Blah", PropertyCo, fixed = TRUE) ~ "Above Average",
                               TRUE ~ PropertyCo)) %>%
-      select(-PropertyCo) %>%
-      mutate(pool = case_when(is.na(PoolFeatur) ~ 0,
+      select(-PropertyCo, -PropertyCondition) %>%
+      mutate(pool = case_when(is.na(PoolFeatures) ~ 0,
                               TRUE ~ 1)) %>%
-      select(-PoolFeatur, -Amenities, -Flooring, -Constructi) %>%
+      select(-PoolFeatures, -Amenities, -Flooring, -ConstructionMaterials) %>%
       filter(YearBuilt > 20) %>%
-      mutate(YearBuilt = case_when(YearBuilt == 1070 ~ 1970,
+      mutate(YearBuilt = case_when(YearBuilt == 984 ~ 1984,
+                                   YearBuilt == 1070 ~ 1970,
                                    YearBuilt == 197 ~ 1970,
                                    TRUE ~ YearBuilt),
-             YearRemode = case_when(YearRemode == 1016 ~ 1916,
-                                    TRUE ~ YearRemode)) %>%
-      filter(YearBuilt < YearRemode | YearRemode == 0) %>%
-      mutate(BuildingNa = str_to_title(BuildingNa),
+             YearRemodeled = case_when(YearRemodeled == 1016 ~ 1916,
+                                    TRUE ~ YearRemodeled)) %>%
+      filter(YearBuilt < YearRemodeled| YearRemodeled == 0) %>%
+      mutate(BuildingNa = str_to_title(BuildingName),
              BuildingNa = case_when(BuildingNa == 'Eden At Haiku Woods, A*' ~ 'Eden At Haiku Woods A',
                                     grepl("Hawaii Kai Cp", BuildingNa, fixed=TRUE) ~ "Hawaii Kai Condo",
                                     grepl("Hawaii Kai Condo", BuildingNa, fixed=TRUE) ~ "Hawaii Kai Condo",
@@ -176,10 +184,17 @@ library(tidycensus)
                                     BuildingNa == "Waikiki Marina Condo*" ~ "Waikiki Marina Condominium",
                                     BuildingNa == "Waikiki Parkway*" ~ "Waikiki Parkway Apts",
                                     TRUE ~ BuildingNa)) %>%
-      filter(SQFTGarage < 5001) %>%
+      filter(SQFTGarageCarport < 5001) %>%
       mutate(Age = year - YearBuilt,
              Age2 = Age * Age,
-             Age.r = year - YearRemode)
+             Age.r = year - YearRemodeled)
+    
+    b<-data %>%
+      count(ParcelNumber)  %>%
+      mutate(num_sale = n) %>%
+      select(-n) 
+    data <- b %>%
+      right_join(., data)
     
 #Download ACS data and process maps
     census <- get_acs(geography = "block group",
