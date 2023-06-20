@@ -1,4 +1,4 @@
-#Import Housing Data,  and pull census info
+#Import Housing Data and clean sales data
 #Jeremy R. Groves
 #Feb 27, 2023
 
@@ -6,8 +6,6 @@ rm(list=ls())
 
 library(tidyverse)
 library(readxl)
-library(sf)
-library(tidycensus)
 
 #Read in Raw Sales Data from PY and Others
     raw.data<-read_excel("./Build/Input/Sales Data 1.xlsx")
@@ -18,12 +16,15 @@ library(tidycensus)
     raw.data2<-read_excel("./Build/Input/Sales Data 2.xlsx")
     
   #cpi <- read.csv("./Build/Input/CPI.csv") 
-   #   cpi <- cpi %>%
-   #     mutate(Series = gsub("\\\n", "", Series.ID)) %>%
-   #     select(-Series.ID)
+  #  cpi <- cpi %>%
+     #  mutate(Series = gsub("\\\n", "", Series.ID)) %>%
+     #  select(-Series.ID)
+    
+    cpi<-read_excel("./Build/Input/cpi.xlsx")
+      cpi <- cpi %>%
+        select(Series2, CPI)
       
-    map.1<-st_read(dsn="./Build/Input/Maps/oahtmk.shp")
-    map.s<-st_read(dsn="./Build/Input/Maps/Elementary_School_Areas.shp")
+   
 
 #Prepare Data
            
@@ -34,11 +35,7 @@ library(tidycensus)
              TMK = paste0("1",TMK)) %>%
       filter(BathsTotal != 0)
 
-    map <- map.1 %>%
-      select(TMK9TXT, TAXPIN, REC_AREA_S, TYPE, STREET_PAR, GISAcres) %>%
-      rename("TMK" = "TMK9TXT")
-    
-    
+   
 #Price Data####
     
     data <- data %>%
@@ -48,23 +45,21 @@ library(tidycensus)
              Series = case_when(Clo.mon < 7 ~ "HALF1",
                                 Clo.mon > 6 ~ "HALF2",
                                 TRUE ~ "0"),
-             Series = paste0(Series, year)) %>%
+             Clo.mon = str_pad(as.character(Clo.mon), 2, side="left",pad="0"),
+             Series = paste0(Series, year),
+             Series2 = paste(year,Clo.mon,sep=".")) %>%
       filter(dom >= 0) %>%
-      select(-Clo.mon) 
-    
-    %>%
-      left_join(., cpi, by="Series") %>%
-      mutate(real.hw.price = (ListPrice*342.499)/Hawii,
-             real.wr.price = (ListPrice*356.733)/Western,
+      select(-Clo.mon) %>%
+      left_join(., cpi, by="Series2") %>%
+      mutate(real.list.price = (ListPrice*303.294)/CPI,
+             real.close.price = (ClosePrice*303.294)/CPI,
              lnList = log(ListPrice),
-             lnreal.hw.list = log(real.hw.price),
-             lnreal.wr.list = log(real.wr.price),
-             real.hw.price = (ClosePrice*342.499)/Hawii,
-             real.wr.price = (ClosePrice*356.733)/Western,
-             lnreal.hw.close = log(real.hw.price),
-             lnreal.wr.close = log(real.wr.price),
-             diff.price = ListPrice - ClosePrice) %>%
-      select(-Series)
+             lnClose = log(ClosePrice),
+             ln.r.list = log(real.list.price),
+             ln.r.close = log(real.close.price),
+             diff.price = ListPrice - ClosePrice,
+             r.diff.price = real.list.price - real.close.price) %>%
+      select(-c(Series, CPI, Series2))
     
 #Characteristic Data####    
 
@@ -189,86 +184,17 @@ library(tidycensus)
              Age2 = Age * Age,
              Age.r = year - YearRemodeled)
     
+    #Add Sales Frequency
+    
     b<-data %>%
       count(ParcelNumber)  %>%
       mutate(num_sale = n) %>%
       select(-n) 
+    
     data <- b %>%
       right_join(., data)
     
-#Download ACS data and process maps
-    census <- get_acs(geography = "block group",
-                      variables = c(population = "B01001_001",
-                                    white = "B02001_002",
-                                    black = "B02001_003",
-                                    asian = "B02001_005",
-                                    hawaian = "B02001_006",
-                                    households = "B25002_001",
-                                    occupied = "B25002_002",
-                                    vacant = "B25002_003",
-                                    owner = "B25003_002",
-                                    renter = "B25003_003"),
-                      year = 2021,
-                      state = 15,
-                      geometry = TRUE)
+core <- data
+save(core, file="./Build/Output/core.RData")
 
-#Create maps for visualizations and to obtain Census link
-    map.data <- data %>%
-      mutate(Sale = 1) %>%
-      select(TMK, Sale) %>%
-      distinct() 
-    
-    map.sale <- map %>%
-      full_join(., map.data, by="TMK")  %>%
-      filter(!is.na(Sale))
-    
-    cen.map <- census %>%
-      select(GEOID, geometry) %>%
-      distinct() %>%
-      st_transform(., crs=st_crs(map.sale))  %>%
-      st_intersection(., map.sale)  %>%
-      select(TMK, GEOID, Sale)
-
-#Create core data set
-    cen.data <- census %>%
-      st_drop_geometry() %>%
-      select(GEOID, variable, estimate) %>%
-      pivot_wider(names_from = "variable", values_from = "estimate", id_cols = "GEOID") %>%
-      filter(population != 0,
-             households != 0) %>%
-      mutate(per_white = white/population,
-             per_black = black/population,
-             per_asian = asian/population,
-             per_hawaian = hawaian/population,
-             per_occupied = occupied/households,
-             per_vacant = vacant/households,
-             per_owner = owner/occupied,
-             per_renter = owner/occupied)
-    
-    core <- data %>%
-      left_join(., cen.map, by = "TMK") %>%
-      left_join(., cen.data, by = "GEOID") %>%
-      filter(!is.na(population)) %>%
-      distinct()
-
-#Setup House Data Fields
-    
-
-    
-    land.data <- data %>%
-      select(TMK, TMK.condo, Zoning, View, Topography, RoadFronta, PropertyFr, FloodZone, ParkingFea,
-             ParkingTot, Parking, PostalCode)
-    
-
-    
-    school.data <- data %>%
-      select(TMK, TMK.condo, Elementary, HighSchool, MiddleOrJu)
-    
-    user.data <- data %>%
-      select(TMK, TMK.condo, rail, '1mile', lnrail, golf, lngolf, preschool, lnpreschool, privateschool,
-             lnprivate, publicschool, lnpublic, hospital, lnhospital, park, lnpark, lnocean,
-             airport, lnairport, wetland, lnwetland)
-    
-    assoc.data <- data %>%
-      select(TMK, TMK.condo, Associatio, Associat_1, Associat_2, Associat_3)
     
