@@ -16,16 +16,9 @@ library(readxl)
     
     raw.data2<-read_excel("./Build/Input/Sales Data 2.xlsx")
     
-  #cpi <- read.csv("./Build/Input/CPI.csv") 
-  #  cpi <- cpi %>%
-     #  mutate(Series = gsub("\\\n", "", Series.ID)) %>%
-     #  select(-Series.ID)
-    
     cpi<-read_excel("./Build/Input/cpi.xlsx")
       cpi <- cpi %>%
         select(Series2, CPI)
-      
-   
 
 #Prepare Data
            
@@ -183,7 +176,9 @@ library(readxl)
       filter(SQFTGarageCarport < 5001) %>%
       mutate(Age = year - YearBuilt,
              Age2 = Age * Age,
-             Age.r = year - YearRemodeled)
+             Age.r = year - YearRemodeled,
+             Age.r = case_when(YearRemodeled == 0 ~ 0,
+                               TRUE ~ Age.r))
     
     #Add Sales Frequency
     

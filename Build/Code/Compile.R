@@ -36,7 +36,7 @@ library(readxl)
               LotFeatures, MaintenanceExpense, MiddleOrJuniorSchool, MLSAreaMajor, ParkingFeatures, RoadFrontage,
               Roof, SQFTLanaiCovered, SQFTLanaiOpen, SQFTRoofedLiving, StreetName, StreetNumber, StreetSuffix,
               TaxAmount, TaxAssessedValue, TaxAssessedValueLand, TaxAssessedValueImprovements, Utilities, dom, 
-              BuildingName, BuildingNa, County)) %>%
+              BuildingName, BuildingNa, County, Stories1, FloodZone)) %>%
     filter(Age >=0) %>%
     mutate(Covid = case_when(Cases >=0 ~ 1,
                              TRUE ~ 0),
@@ -45,8 +45,31 @@ library(readxl)
            Elevator = case_when(ElevatorsNumberOf >= 0 ~ ElevatorsNumberOf,
                                 TRUE ~ 1)) %>%
     filter(PostalCode > 0,
-           !is.na(PostalCode)) %>%
-    mutate(mon.yr = format(as.Date(CloseDate), "%Y-%m"))
-  
-save(core.2, file="./Build/Output/CoreData.RData")
+           !is.na(PostalCode),
+           !is.na(elem_desc)) %>%
+    mutate(mon.yr = format(as.Date(CloseDate), "%Y-%m"),
+           Stories = factor(Stories, levels=c("One","Two","Three","Three+","Multi","Other")),
+           LUC = relevel(factor(LUC), ref="Residential"),
+           cond = factor(cond, levels=c("Average","Excellent","Above Average","Fair","Major Repair","Tear Down")),
+           fld_zone = relevel(factor(fld_zone), ref = "AE"),
+           elem_desc = droplevels(factor(elem_desc)),
+           mid_desc = droplevels(factor(mid_desc)),
+           high_desc = droplevels(factor(high_desc)),
+           parking = case_when(ParkingTotal >= 10 ~ "10+",
+                               TRUE ~ as.character(ParkingTotal)),
+           parking = factor(parking, levels = c("0","1","2","3","4","5","6","7","8","9","10+")),
+           ProperyType = gsub("/","_",PropertyType),
+           remod = case_when(YearRemodeled == 0 ~ 0,  #Dummy for remodel
+                             TRUE ~ 1),
+           Covid = Covid + 0,
+           par_area = as.numeric(par_area),
+           Beach = as.numeric(Beach),
+           park = as.numeric(park),
+           hospital = as.numeric(hospital),
+           airport = as.numeric(airport)) %>%
+    rename("ListDate" = "ListingContractDate") %>%
+    select(-c(AssociationFee, ElevatorsNumberOf, ParkingTotal, Topography, PropertyFrontage,SQFTRoofedOther,
+              UnitFeatures))
+           
+ save(core.2, file="./Build/Output/CoreData.RData")
 

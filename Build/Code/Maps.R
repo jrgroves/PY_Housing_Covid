@@ -186,7 +186,20 @@ library(sf)
     
     m.data<-m.data %>%
       left_join(., map2, by="TMK")
-
+    
+#Correct Flood Zone with Current Map
+    
+    map2 <- st_read(dsn="./Build/Input/Maps/Flood_Zones.shp")    
+    
+    map2 <- map2 %>%
+      select(fld_zone) %>%
+      st_transform(., crs=st_crs(map)) %>%
+      st_intersection(., m.cen) %>%
+      st_drop_geometry() %>%
+      filter(!duplicated(TMK))
+    
+    m.data<-m.data %>%
+      left_join(., map2, by="TMK")
 #Create maps for visualizations and to obtain Census link
 
 cen.map <- census %>%
