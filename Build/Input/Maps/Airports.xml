@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?><metadata>
+    <idinfo>
+        <citation>
+            <citeinfo>
+                <title>Airports</title>
+                <onlink>https://geodata.hawaii.gov/arcgis/rest/services/Infrastructure/MapServer/13</onlink>
+                <onlink>https://files.hawaii.gov/dbedt/op/gis/data/airports.pdf</onlink>
+            </citeinfo>
+        </citation>
+        <descript>
+            <abstract>[Metadata] Airports - State of HawaiiSource: Hawaii State Dept. of Transportation, Airports Division, March, 2019.For additional information, please refer to complete metadata at https://files.hawaii.gov/dbedt/op/gis/data/airports.pdf or contact Hawaii Statewide GIS Program, Office of Planning and Sustainable Development, State of Hawaii; PO Box 2359, Honolulu, HI 96804; (808) 587-2846; email: gis@hawaii.gov; Website: https://planning.hawaii.gov/gis.</abstract>
+            <purpose>Airports - State of Hawaii</purpose>
+        </descript>
+        <keywords>
+            <theme>
+                <themekt>None</themekt>
+                <themekey>State of Hawaii</themekey>
+                <themekey>Airports</themekey>
+                <themekey>Kauai</themekey>
+                <themekey>Oahu</themekey>
+                <themekey>Molokai</themekey>
+                <themekey>Lanai</themekey>
+                <themekey>Maui</themekey>
+                <themekey>Hawaii</themekey>
+                <themekey>Infrastructure</themekey>
+                <themekey>Transportation</themekey>
+            </theme>
+        </keywords>
+        <accconst>None</accconst>
+        <useconst>State of Hawaii Terms of Use. 
+
+
+
+The
+ contents of this web page are public domain and to the extent indicated
+ otherwise in the Terms of Use, are exempt from Terms of Use policy 
+restrictions.There are no expressed warranties associated with the 
+release of this data or product. Specifically, no warranty is made that 
+the GIS data or any subsequent updates will be error free and no 
+warranty is made regarding the positional or thematic accuracy of the 
+GIS data. The GIS data and any features depicted do not represent or 
+confer any legal rights, privileges, benefits, boundaries or claims of 
+any kind. The Office of Planning and Sustainable Development encourages users to report any 
+discrepancies or errors found. 
+ Contact: Hawaii Statewide GIS Program, Office of Planning and 
+Sustainable Development, State of Hawaii; PO Box 2359, Honolulu, Hi. 
+96804; (808) 587-2846; email: gis@hawaii.gov. Website: https://planning.hawaii.gov/gis.</useconst>
+        <datacred>State of Hawaii Department of Transportation, Airports Division; Hawaii Statewide GIS Program</datacred>
+    </idinfo>
+    <metainfo>
+        <metd>20190329</metd>
+        <metc>
+            <cntinfo>
+                <!--no contact person or organization name available-->
+            </cntinfo>
+        </metc>
+        <metstdn>FGDC Content Standard for Digital Geospatial Metadata</metstdn>
+        <metstdv>FGDC-STD-001-1998</metstdv>
+        <mettc>local time</mettc>
+    </metainfo>
+</metadata>
