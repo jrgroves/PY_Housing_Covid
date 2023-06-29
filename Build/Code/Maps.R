@@ -8,7 +8,8 @@ library(tidyverse)
 library(tidycensus)
 library(sf)
 
-#Read in core data and pull TMK for limiting of parcel maps
+#Read in core data and pull TMK for limiting of parcel maps. This is created by the 
+#Data setup.R file
 
   load("./Build/Output/core.RData")
   
