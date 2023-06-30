@@ -9,6 +9,7 @@ rm(list=ls())
 library(tidyverse)
 library(estimatr)
 library(stargazer)
+library(spgwr)
 
 #Read in Cleaned Data
 
@@ -102,10 +103,18 @@ library(stargazer)
          y = "Average Monthly Sales",
          caption = "Veritcal line represents start of COVID-19 pandemic. Hoizontal segments are yearly averages") +
     theme_bw()
+ 
+ rm(a, b, c, d, e, f, g, sumfac, sum.data)
   
 #Regression Models
  
   mod1 <- lm(ln.r.close ~ Covid, data = main) 
+    band<-gwr.sel(ln.r.close ~ Covid, 
+            data=main, 
+            coords=cbind(main$lat, main$lon),
+            adapt=T) 
+  
+  
   mod2 <- lm(ln.r.close ~ Covid + BedsTotal + BathsFull + BathsHalf + DOM + Stories + SqftTotal +
                Age + Age2 + Basement + factor(cond), data=main)
   mod3 <- lm(ln.r.close ~ Covid + BedsTotal + BathsFull + BathsHalf + DOM + Stories + SqftTotal +
@@ -139,4 +148,15 @@ library(stargazer)
                Beach + park + hospital + airport + per_black + per_asian + per_hawaian +
                per_owner + per_occupied + parking + HOA + remod + Elevator + factor(mid_desc) +
                lat + lon, data=main)
+  
+  band<-gwr.sel(ln.r.close ~ Covid, 
+                data=main, 
+                coords=cbind(main$lat, main$lon),
+                adapt=T) 
+  
+  b<-gwr.model = gwr(ln.r.close ~ Covid, 
+                     data=main, 
+                     adapt=band,
+                     hatmatrix=TRUE,
+                     se.fit=TRUE) 
       

@@ -77,11 +77,11 @@ library(readxl)
              Number = case_when(grepl("[[:digit:]]+", Stories) ~ 1,
                                 TRUE ~ 0),
              Stories1 = Stories,
-             Stories = case_when(Three == 1 & Number == 0 ~ "Three+",
+             Stories = case_when(Three == 1 & Number == 0 ~ "Multi",
                                  Two == 1 & Three == 0 & Number == 0 ~ "Two",
                                  One == 1 & Two ==0 & Three == 0 & Number == 0 ~ "One",
                                  Number == 1 ~ "Multi",
-                                 TRUE ~ "Other")) %>%
+                                 TRUE ~ "Multi")) %>%
       select(-c("One", "Two", "Three", "Number")) %>%
       mutate(BuildType = ArchitecturalStyle,
              BuildType = gsub("No Unit Above or Below, ", "", BuildType),
@@ -178,7 +178,9 @@ library(readxl)
              Age2 = Age * Age,
              Age.r = year - YearRemodeled,
              Age.r = case_when(YearRemodeled == 0 ~ 0,
-                               TRUE ~ Age.r))
+                               TRUE ~ Age.r),
+             Parking = case_when(ParkingTotal > 4 ~ "5 or More",
+                                 TRUE ~ as.character(ParkingTotal)))
     
     #Add Sales Frequency
     
@@ -190,7 +192,15 @@ library(readxl)
     data <- b %>%
       right_join(., data)
     
-core <- data
+core <- data %>%
+  filter(#DOM <= 365,  #Removes about 143 observations with DOM greater than one year.
+         real.list.price >= 50000, #Removes single low listing price which is likely typo
+         LUC != "Industrial", #Removes 94 observations
+         cond != "Tear Down", #Removes 310 observations
+         cond != "Major Repair") #Removes 816 units
+         
+
+
 save(core, file="./Build/Output/core.RData")
 
     

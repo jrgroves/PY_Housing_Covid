@@ -7,6 +7,7 @@ rm(list=ls())
 library(tidyverse)
 library(tidycensus)
 library(sf)
+library(geosphere) #for lat and lon distance
 
 #Read in core data and pull TMK for limiting of parcel maps. This is created by the 
 #Data setup.R file
@@ -151,42 +152,91 @@ library(sf)
       distinct()
     
 #Get School Names
+    map3 <- st_read(dsn="./Build/Input/Maps/Public_Schools.shp")
+    
+    map3 <- map3 %>%
+      st_transform(., crs=st_crs(map)) %>%
+      mutate(lon.sch = map_dbl(geometry, ~st_centroid(.x)[[1]]),
+             lat.sch = map_dbl(geometry, ~st_centroid(.x)[[2]])) %>%
+      st_drop_geometry() %>%
+      select(sch_code, lon.sch, lat.sch)
+ 
+    schbrid<-read.csv("./Build/Input/School Bridge.csv")
+    
     map2 <- st_read(dsn="./Build/Input/Maps/Elementary_School_Areas.shp")
     
+    brid<- schbrid %>%
+      filter(grepl("Elementary",sch_type),
+             Name != "") %>%
+      rename("elem_desc" = "Name")
+    
+    
     map2 <- map2 %>%
-      select(elem_desc) %>%
-      st_transform(., crs=st_crs(map)) %>%
-      st_intersection(., m.cen) %>%
-      st_drop_geometry() %>%
-      filter(!duplicated(TMK))
+        left_join(., brid, by="elem_desc", relationship = "many-to-many")
+    
+    map2 <- map2 %>%
+        select(sch_code) %>%
+        filter(!is.na(sch_code)) %>%
+        st_transform(., crs=st_crs(map)) %>%
+        st_intersection(., m.cen) %>%
+        st_drop_geometry() %>%
+        filter(!duplicated(TMK)) %>%
+      left_join(., map3)
     
     m.data<-m.data %>%
-      left_join(., map2, by="TMK")
+      left_join(., map2, by="TMK") %>%
+      mutate(elem_sch = (sqrt(((lon.sch - lon)^2)+((lat.sch - lat)^2)))) %>%
+      select(-c(lon.sch, lat.sch, sch_code))
 
+    
     map2 <- st_read(dsn="./Build/Input/Maps/Middle_School_Areas.shp")    
+ 
+    brid<- schbrid %>%
+      filter(grepl("Intermediate" ,sch_type) | grepl("Middle", sch_type),
+             Name != "")    %>%
+      rename("int_desc" = "Name")
     
     map2 <- map2 %>%
-      select(int_desc) %>%
-      rename("mid_desc" = "int_desc") %>%
+      left_join(., brid, by="int_desc", relationship = "many-to-many")
+    
+    map2 <- map2 %>%
+      select(sch_code) %>%
+      filter(!is.na(sch_code)) %>%
       st_transform(., crs=st_crs(map)) %>%
       st_intersection(., m.cen) %>%
       st_drop_geometry() %>%
-      filter(!duplicated(TMK))
+      filter(!duplicated(TMK)) %>%
+      left_join(., map3)
+      
     
     m.data<-m.data %>%
-      left_join(., map2, by="TMK")
+      left_join(., map2, by="TMK") %>%
+      mutate(mid_sch = (sqrt(((lon.sch - lon)^2)+((lat.sch - lat)^2)))) %>%
+      select(-c(lon.sch, lat.sch, sch_code))
     
-    map2 <- st_read(dsn="./Build/Input/Maps/High_School_Areas.shp")    
+    map2 <- st_read(dsn="./Build/Input/Maps/High_School_Areas.shp")  
+    
+    brid<- schbrid %>%
+      filter(grepl("High" ,sch_type),
+             Name != "")    %>%
+      rename("high_desc" = "Name")
     
     map2 <- map2 %>%
-      select(high_desc) %>%
+      left_join(., brid, by="high_desc", relationship = "many-to-many")
+    
+    map2 <- map2 %>%
+      select(sch_code) %>%
+      filter(!is.na(sch_code)) %>%
       st_transform(., crs=st_crs(map)) %>%
       st_intersection(., m.cen) %>%
       st_drop_geometry() %>%
-      filter(!duplicated(TMK))
-    
+      filter(!duplicated(TMK)) %>%
+      left_join(., map3)
+     
     m.data<-m.data %>%
-      left_join(., map2, by="TMK")
+      left_join(., map2, by="TMK") %>%
+      mutate(high_sch = (sqrt(((lon.sch - lon)^2)+((lat.sch - lat)^2)))) %>%
+      select(-c(lon.sch, lat.sch, sch_code))
     
 #Correct Flood Zone with Current Map
     
@@ -229,7 +279,7 @@ cen.data <- census %>%
          per_occupied = occupied/households,
          per_vacant = vacant/households,
          per_owner = owner/occupied,
-         per_renter = owner/occupied) %>%
+         per_renter = renter/occupied) %>%
   distinct()
 
 cen.data2<-cen.map %>%

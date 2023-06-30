@@ -1,0 +1,302 @@
+Name,sch_code,sch_type
+Aina Haina,100,Elementary
+Ala Wai,101,Elementary
+Aliiolani,102,Elementary
+,103,Elementary-Middle-High
+Central,104,Middle
+Dole,105,Middle
+Farrington,106,High
+Fern,107,Elementary
+Hahaione,108,Elementary
+Hokulani,109,Elementary
+Jarrett,110,Middle
+Jefferson,111,Elementary
+Kaahumanu,112,Elementary
+Kaewai,113,Elementary
+Kahala,114,Elementary
+Kaimuki,115,High
+Kaimuki,116,Middle
+Kaiulani,117,Elementary
+Kalakaua,118,Middle
+Kalani,119,High
+Kalihi,120,Elementary
+Kalihi Kai,121,Elementary
+Kalihi Uka,122,Elementary
+Kalihi Waena,123,Elementary
+Kapalama,124,Elementary
+Kauluwela,125,Elementary
+Kawananakoa,126,Middle
+Koko Head,127,Elementary
+Kuhio,128,Elementary
+Lanakila,129,Elementary
+Liholiho,130,Elementary
+Likelike,131,Elementary
+Linapuni,133,Elementary
+Lincoln,134,Elementary
+Lunalilo,135,Elementary
+Maemae,136,Elementary
+Manoa,137,Elementary
+McKinley,138,High
+Niu Valley,139,Middle
+Noelani,140,Elementary
+Nuuanu,141,Elementary
+Palolo,142,Elementary
+Pauoa,143,Elementary
+Puuhale,145,Elementary
+Roosevelt,146,High
+Royal,147,Elementary
+Stevenson,148,Middle
+Waialae,149,Elementary
+Waikiki,150,Elementary
+Washington,152,Middle
+Wilson,153,Elementary
+Kaiser,154,High
+Kamiloiki,155,Elementary
+Aiea,200,Elementary
+Aiea,201,Middle
+Aiea,202,High
+Aliamanu,203,Elementary
+Aliamanu,204,Middle
+Haleiwa,206,Elementary
+,207,Elementary
+Helemano,208,Elementary
+Hickam,209,Elementary
+Iliahi,210,Elementary
+Kaala,211,Elementary
+Kipapa,212,Elementary
+Leilehua,214,High
+Makalapa,215,Elementary
+Mililani,216,High
+Moanalua,217,Elementary
+Moanalua,218,High
+Moanalua,219,Middle
+Mokulele,220,Elementary
+Nimitz,221,Elementary
+Pearl Harbor,222,Elementary
+Pearl Harbor Kai,223,Elementary
+Radford,224,High
+Red Hill,225,Elementary
+Solomon,226,Elementary
+Scott,227,Elementary
+Shafter,228,Elementary
+Wahiawa,229,Elementary
+Wahiawa,230,Middle
+Waialua,231,Elementary
+Waialua High and Intermediate,232,Intermediate
+Waimalu,233,Elementary
+Mililani Waena,234,Elementary
+Webling,235,Elementary
+Wheeler,236,Elementary
+Wheeler,237,Middle
+Mililani,238,Middle
+Salt Lake,239,Elementary
+Mililani Ike,240,Elementary
+Mililani Mauka,241,Elementary
+Mililani Uka,242,Elementary
+Pearl Ridge,243,Elementary
+Ahrens,250,Elementary
+Barbers Point,251,Elementary
+Campbell,252,High
+Ewa,253,Elementary
+Ewa Beach,254,Elementary
+Highlands,255,Middle
+Iroquois Point,256,Elementary
+Maili,257,Elementary
+Makaha,258,Elementary
+Makakilo,259,Elementary
+Manana,260,Elementary
+Nanaikapono,261,Elementary
+Nanakuli,262,Elementary
+Nanakuli High and Intermediate,263,Intermediate
+Palisades,264,Elementary
+Pearl City,265,Elementary
+Pearl City,266,High
+Pearl City Highlands,267,Elementary
+Lehua,268,Elementary
+Pohakea,269,Elementary
+Waianae,270,Elementary
+Leihoku,271,Elementary
+Waianae,272,High
+Waianae,273,Middle
+Waipahu,274,Elementary
+Kamaile Academy PCS,275,Elementary-Middle-High
+Honowai,276,Elementary
+Waipahu,277,High
+Waipahu,278,Middle
+Ilima,279,Middle
+Holomua,280,Elementary
+Kaimiloa,281,Elementary
+Kapolei,282,Elementary
+Kanoelani,283,Elementary
+Momilani,285,Elementary
+Mauka Lani,286,Elementary
+Kaleiopuu,287,Elementary
+Waiau,288,Elementary
+Waikele,290,Elementary
+Kapolei,291,Middle
+Kapolei,292,High
+Hookele,293,Elementary
+Keoneula,294,Elementary
+Ewa Makai,296,Middle
+Aikahi,300,Elementary
+Castle,301,High
+Enchanted Lake,302,Elementary
+Hauula,303,Elementary
+Heeia,304,Elementary
+Kaaawa,305,Elementary
+Kahaluu,306,Elementary
+Kahuku High and Intermediate,307,Intermediate
+Kahuku High and Intermediate,307,Intermediate
+Kailua,308,Elementary
+Kailua,309,High
+Kailua,310,Middle
+Kainalu,311,Elementary
+Kalaheo,312,High
+Kaneohe,313,Elementary
+Puohala,314,Elementary
+Kapunahala,315,Elementary
+Keolu,317,Elementary
+King,318,Middle
+Laie,319,Elementary
+Lanikai,320,Elementary
+Maunawili,321,Elementary
+Mokapu,322,Elementary
+Parker,323,Elementary
+Pope,324,Elementary
+Sunset Beach,325,Elementary
+Waiahole,326,Elementary
+Waimanalo Elementary and Intermediate,327,Elementary-Middle
+Waimanalo Elementary and Intermediate,327,Elementary-Middle
+Kaelepulu,330,Elementary
+Kahuku,331,Elementary
+Ahuimanu,335,Elementary
+de Silva,351,Elementary
+Haaheo,352,Elementary
+Keaau,353,Elementary
+Keaau,354,High
+Hilo,355,High
+Hilo,356,Middle
+Hilo Union,357,Elementary
+Holualoa,358,Elementary
+Honaunau,359,Elementary
+Honokaa High and Intermediate,360,Intermediate
+Honokaa,361,Elementary
+Hookena,363,Elementary
+Kalanianaole and Inter,365,Elementary-Middle
+Kalanianaole Elementary and Intermediate,365,Elementary-Middle
+Kohala,366,Middle
+Kapiolani,367,Elementary
+Kau High and Pahala Elementary,368,Elementary-Middle-High
+Kau High and Pahala Elementary,368,Elementary-Middle-High
+Kau Pahala,368,Elementary-Middle-High
+Kaumana,369,Elementary
+Keaau,370,Middle
+Kahakai,371,Elementary
+Keaukaha,372,Elementary
+Kohala,373,High
+Konawaena,374,High
+Konawaena,375,Elementary
+Konawaena,376,Middle
+Laupahoehoe and Elementary,377,Elementary-Middle-High
+Laupahoehoe,377,Elementary-Middle-High
+,378,Elementary-Middle-High
+Mountain View,379,Elementary
+Naalehu,380,Elementary
+Pahoa,381,Elementary
+Paauilo and Inter,382,Elementary-Middle
+Paauilo Elementary and Intermediate,382,Elementary-Middle
+Pahoa High and Intermediate,383,Intermediate
+Waiakea,384,Elementary
+Waiakea,385,Middle
+Waiakeawaena,386,Elementary
+Waimea,387,Elementary
+Kealakehe,388,Elementary
+Waiakea,389,High
+Kealakehe,390,Middle
+Keonepoko,391,Elementary
+Kealakehe,392,High
+Waikoloa and Mid,393,Elementary-Middle
+Waikoloa Elementary and Middle School,393,Elementary-Middle
+,394,Middle
+Kohala,395,Elementary
+,396,Elementary-Middle-High
+,397,Elementary-Middle-High
+,398,Elementary
+,399,Intermediate
+Baldwin,400,High
+Haiku,401,Elementary
+Hana,402,Elementary-Middle-High
+Hana and El,402,Elementary-Middle-High
+Iao,404,Middle
+Kahului,405,Elementary
+Kamehameha III,406,Elementary
+Kaunakakai,407,Elementary
+Kihei,409,Elementary
+Kilohana,410,Elementary
+Kualapuu,411,Elementary
+Kula,412,Elementary
+Lahaina,413,Middle
+Lahainaluna,414,High
+Lanai,415,Elementary-Middle-High
+Lanai and Elementary,415,Elementary-Middle-High
+Lihikai,416,Elementary
+Makawao,417,Elementary
+Maui,418,High
+Maunaloa,419,Elementary
+Kalama,420,Middle
+Molokai,421,High
+Paia,422,Elementary
+Waihee,424,Elementary
+Wailuku,425,Elementary
+Pukalani,426,Elementary
+Maui Waena,428,Middle
+Nahienaena,429,Elementary
+Lokelani,430,Middle
+Kamalii,431,Elementary
+Pomaikai,433,Elementary
+Molokaidle,434,Middle
+Kekaulike,435,High
+Puu Kukui,436,Elementary
+Kapaa,447,Middle
+Kamakahelei,448,Middle
+Eleele,451,Elementary
+Hanalei,452,Elementary
+Kalaheo,453,Elementary
+Kapaa,454,Elementary
+Kapaa,455,High
+Kauai,456,High
+Kaumualii,457,Elementary
+Kekaha,458,Elementary
+Kilauea,459,Elementary
+Koloa,460,Elementary
+Niihau,461,Elementary-Middle-High
+Niihau and Elementary,461,Elementary-Middle-High
+Waimea,462,High
+Wilcox,463,Elementary
+Waimea Canyondle,464,Middle
+,,
+,,
+,,
+,,
+,,
+,,
+,,
+,,
+,,
+,,
+,,
+,,
+,,
+,,
+,,
+,,
+,,
+,,
+,,
+,,
+,,
+,,
+,,
+,,
+,,
+,,
