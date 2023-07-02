@@ -7,7 +7,7 @@ rm(list=ls())
 library(tidyverse)
 library(tidycensus)
 library(sf)
-library(geosphere) #for lat and lon distance
+
 
 #Read in core data and pull TMK for limiting of parcel maps. This is created by the 
 #Data setup.R file
@@ -157,7 +157,7 @@ library(geosphere) #for lat and lon distance
     map3 <- map3 %>%
       st_transform(., crs=st_crs(map)) %>%
       mutate(lon.sch = map_dbl(geometry, ~st_centroid(.x)[[1]]),
-             lat.sch = map_dbl(geometry, ~st_centroid(.x)[[2]])) %>%
+             lat.sch = map_dbl(geometry, ~st_centroid(.x)[[2]]))  %>%
       st_drop_geometry() %>%
       select(sch_code, lon.sch, lat.sch)
  
@@ -170,7 +170,6 @@ library(geosphere) #for lat and lon distance
              Name != "") %>%
       rename("elem_desc" = "Name")
     
-    
     map2 <- map2 %>%
         left_join(., brid, by="elem_desc", relationship = "many-to-many")
     
@@ -181,10 +180,40 @@ library(geosphere) #for lat and lon distance
         st_intersection(., m.cen) %>%
         st_drop_geometry() %>%
         filter(!duplicated(TMK)) %>%
-      left_join(., map3)
+      left_join(., map3) 
     
     m.data<-m.data %>%
       left_join(., map2, by="TMK") %>%
+      mutate(sch_code = case_when( TMK == "139050025" ~ 108,
+                                   TMK == "173012014" ~ 412,
+                                   TMK == "139031002" ~ 108,
+                                   TMK == "139032078" ~ 108,
+                                   TMK == "139095037" ~ 108,
+                                   TMK == "139095039" ~ 108,
+                                   TMK == "173010007" ~ 207,
+                                   TMK == "173011004" ~ 207,
+                                   TMK == "137002044" ~ 100,
+                                   TRUE ~ sch_code),
+             lon.sch = case_when( TMK == "139050025" ~ 633727.6,
+                                  TMK == "173012014" ~ 778129.3,
+                                  TMK == "139031002" ~ 633727.6,
+                                  TMK == "139032078" ~ 633727.6,
+                                  TMK == "139095037" ~ 633727.6,
+                                  TMK == "139095039" ~ 633727.6,
+                                  TMK == "173010007" ~ 597722.,
+                                  TMK == "173011004" ~ 597722.,
+                                  TMK == "137002044" ~ 629096.3,
+                                  TRUE ~ lon.sch),
+             lat.sch = case_when( TMK == "139050025" ~ 2355490,
+                                  TMK == "173012014" ~ 2298021,
+                                  TMK == "139031002" ~ 2355490,
+                                  TMK == "139032078" ~ 2355490,
+                                  TMK == "139095037" ~ 2355490,
+                                  TMK == "139095039" ~ 2355490,
+                                  TMK == "173010007" ~ 2377676,
+                                  TMK == "173011004" ~ 2377676,
+                                  TMK == "137002044" ~ 2353552,
+                                  TRUE ~ lat.sch)) %>%  
       mutate(elem_sch = (sqrt(((lon.sch - lon)^2)+((lat.sch - lat)^2)))) %>%
       select(-c(lon.sch, lat.sch, sch_code))
 
@@ -210,15 +239,40 @@ library(geosphere) #for lat and lon distance
       
     
     m.data<-m.data %>%
-      left_join(., map2, by="TMK") %>%
+      left_join(., map2, by="TMK")%>%
+      mutate(sch_code = case_when( TMK == "139050025" ~ 139,
+                                   TMK == "139031002" ~ 139,
+                                   TMK == "139032078" ~ 139,
+                                   TMK == "139095037" ~ 139,
+                                   TMK == "139095039" ~ 139,
+                                   TMK == "137002044" ~ 139,
+                                   TRUE ~ sch_code),
+             lon.sch = case_when( TMK == "139050025" ~ 630803.7,
+                                  TMK == "139031002" ~ 630803.7,
+                                  TMK == "139032078" ~ 630803.7,
+                                  TMK == "139095037" ~ 630803.7,
+                                  TMK == "139095039" ~ 630803.7,
+                                  TMK == "137002044" ~ 630803.7,
+                                  TRUE ~ lon.sch),
+             lat.sch = case_when( TMK == "139050025" ~ 2354262,
+                                  TMK == "139031002" ~ 2354262,
+                                  TMK == "139032078" ~ 2354262,
+                                  TMK == "139095037" ~ 2354262,
+                                  TMK == "139095039" ~ 2354262,
+                                  TMK == "137002044" ~ 2354262,
+                                  TRUE ~ lat.sch)) %>%  
       mutate(mid_sch = (sqrt(((lon.sch - lon)^2)+((lat.sch - lat)^2)))) %>%
       select(-c(lon.sch, lat.sch, sch_code))
     
     map2 <- st_read(dsn="./Build/Input/Maps/High_School_Areas.shp")  
     
     brid<- schbrid %>%
-      filter(grepl("High" ,sch_type),
+      distinct() %>%
+      filter(grepl("High" ,sch_type) | grepl("Waialua High and Intermediate", Name) |
+               grepl("Kahuku High and Intermediate", Name) |
+               grepl("Nanakuli High and Intermediate", Name),
              Name != "")    %>%
+      distinct() %>%
       rename("high_desc" = "Name")
     
     map2 <- map2 %>%
@@ -235,6 +289,27 @@ library(geosphere) #for lat and lon distance
      
     m.data<-m.data %>%
       left_join(., map2, by="TMK") %>%
+      mutate(sch_code = case_when( TMK == "139050025" ~ 154,
+                                   TMK == "139031002" ~ 154,
+                                   TMK == "139032078" ~ 154,
+                                   TMK == "139095037" ~ 154,
+                                   TMK == "139095039" ~ 154,
+                                   TMK == "137002044" ~ 119,
+                                   TRUE ~ sch_code),
+             lon.sch = case_when( TMK == "139050025" ~ 635101.9,
+                                  TMK == "139031002" ~ 635101.9,
+                                  TMK == "139032078" ~ 635101.9,
+                                  TMK == "139095037" ~ 635101.9,
+                                  TMK == "139095039" ~ 635101.9,
+                                  TMK == "137002044" ~ 627209.4,
+                                  TRUE ~ lon.sch),
+             lat.sch = case_when( TMK == "139050025" ~ 2354367,
+                                  TMK == "139031002" ~ 2354367,
+                                  TMK == "139032078" ~ 2354367,
+                                  TMK == "139095037" ~ 2354367,
+                                  TMK == "139095039" ~ 2354367,
+                                  TMK == "137002044" ~ 2353334,
+                                  TRUE ~ lat.sch)) %>%  
       mutate(high_sch = (sqrt(((lon.sch - lon)^2)+((lat.sch - lat)^2)))) %>%
       select(-c(lon.sch, lat.sch, sch_code))
     
