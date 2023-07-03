@@ -20,26 +20,26 @@ library(spgwr)
     mutate(Covid2 = case_when(CloseDate <= "2020-03-01" ~ 0,
                               CloseDate >  "2022-06-30" ~ 0,
                               TRUE ~ 1),
-           Age2 = Age2 / 1000) %>%
+           Cases2 = case_when(is.na(Cases) ~ 0,
+                              TRUE ~ Cases)) %>%
   filter(!is.na(fld_zone))  #Removes two observations with no flood zone
   
   #Summary Statistics
-  
   
   a<-as.data.frame(model.matrix(~PropertyType - 1, data=main))
   b<-as.data.frame(model.matrix(~Stories - 1, data=main))
   c<-as.data.frame(model.matrix(~year - 1, data=main))
   d<-as.data.frame(model.matrix(~LUC - 1, data=main))
   e<-as.data.frame(model.matrix(~cond - 1, data=main))
-  f<-as.data.frame(model.matrix(~parking - 1, data=main))
+  f<-as.data.frame(model.matrix(~Parking - 1, data=main))
   g<-as.data.frame(model.matrix(~fld_zone - 1, data=main))
   
   sumfac<-as.data.frame(cbind(a,b,c,d,e,f,g))
   
   sum.data <- main %>%
-    select(num_sale, Covid, Covid2, BathsFull, BathsHalf, BedsTotal,DOM,SQFTGarageCarport,SqftTotal,real.list.price,real.close.price,
+    select(num_sale, Covid, Covid2, Cases, Cases2, BathsFull, BathsHalf, BedsTotal,DOM,livSQFT,SQFTGarageCarport,real.list.price,real.close.price,
            Basement, Split, PUD, LowRise, HighRise,Townhouse,Condotel,SingleFam, Duplex, MultiDwell, WalkUP,
-           pool, Age, Age2, Age.r, Cases, par_area, Beach, park, hospital, airport, per_white, per_black, per_asian,
+           pool, Age, Age2, Age.r, par_area, beach, park, hospital, airport, per_white, per_black, per_asian,
            per_hawaian,per_occupied,per_vacant,per_owner,per_renter, HOA, Elevator, remod, lat, lon) 
   sum.data <- cbind(sum.data, sumfac)
   
@@ -109,12 +109,7 @@ library(spgwr)
 #Regression Models
  
   mod1 <- lm(ln.r.close ~ Covid, data = main) 
-    band<-gwr.sel(ln.r.close ~ Covid, 
-            data=main, 
-            coords=cbind(main$lat, main$lon),
-            adapt=T) 
-  
-  
+
   mod2 <- lm(ln.r.close ~ Covid + BedsTotal + BathsFull + BathsHalf + DOM + Stories + SqftTotal +
                Age + Age2 + Basement + factor(cond), data=main)
   mod3 <- lm(ln.r.close ~ Covid + BedsTotal + BathsFull + BathsHalf + DOM + Stories + SqftTotal +
@@ -127,36 +122,32 @@ library(spgwr)
   mod6 <- lm(ln.r.close ~ Covid2 + BedsTotal + BathsFull + BathsHalf + DOM + Stories + SqftTotal +
                Age + Age2 + Basement + factor(cond) + factor(LUC) + factor(year) +
                Split + PUD + LowRise + HighRise + Townhouse + Condotel + Duplex + WalkUP +
-               Beach + park + hospital + airport, data=main)
+               beach + park + hospital + airport, data=main)
   mod7 <- lm(ln.r.close ~ Covid + BedsTotal + BathsFull + BathsHalf + DOM + Stories + SqftTotal +
                Age + Age2 + Basement + factor(cond) + factor(LUC) + factor(year) +
                Split + PUD + LowRise + HighRise + Townhouse + Condotel + Duplex + WalkUP +
-               Beach + park + hospital + airport, data=main)
+               beach + park + hospital + airport, data=main)
   mod8 <- lm(ln.r.close ~ Covid + BedsTotal + BathsFull + BathsHalf + DOM + Stories + SqftTotal +
                Age + Age2 + Basement + factor(cond) + factor(LUC) + factor(year) +
                Split + PUD + LowRise + HighRise + Townhouse + Condotel + Duplex + WalkUP +
-               Beach + park + hospital + airport + per_black + per_asian + per_hawaian +
+               beach + park + hospital + airport + per_black + per_asian + per_hawaian +
                per_owner + per_occupied, data=main)
   mod9 <- lm(ln.r.close ~ Covid + BedsTotal + BathsFull + BathsHalf + DOM + Stories + SqftTotal +
                Age + Age2 + Basement + factor(cond) + factor(LUC) + factor(year) +
                Split + PUD + LowRise + HighRise + Townhouse + Condotel + Duplex + WalkUP +
-               Beach + park + hospital + airport + per_black + per_asian + per_hawaian +
-               per_owner + per_occupied + parking + HOA + remod + Elevator, data=main)
+               beach + park + hospital + airport + per_black + per_asian + per_hawaian +
+               per_owner + per_occupied + Parking + HOA + remod + Elevator, data=main)
   mod10 <- lm(ln.r.close ~ Covid + BedsTotal + BathsFull + BathsHalf + DOM + Stories + SqftTotal +
                Age + Age2 + Basement + factor(cond) + factor(LUC) + factor(year) +
                Split + PUD + LowRise + HighRise + Townhouse + Condotel + Duplex + WalkUP +
-               Beach + park + hospital + airport + per_black + per_asian + per_hawaian +
-               per_owner + per_occupied + parking + HOA + remod + Elevator + factor(mid_desc) +
+               beach + park + hospital + airport + per_black + per_asian + per_hawaian +
+               per_owner + per_occupied + Parking + HOA + remod + Elevator + elem_sch + mid_sch + high_sch +
                lat + lon, data=main)
+  mod11 <- lm(ln.r.close ~ Covid + BedsTotal + BathsFull + BathsHalf + DOM + Stories + SqftTotal +
+                Age + Age2 + Basement + factor(cond) + factor(LUC) + factor(year) +
+                Split + PUD + LowRise + HighRise + Townhouse + Condotel + Duplex + WalkUP +
+                beach + park + hospital + airport + per_black + per_asian + per_hawaian +
+                per_owner + per_occupied + Parking + HOA + remod + Elevator + elem_sch + mid_sch + high_sch +
+                lat + lon + Cases2, data=main)
+
   
-  band<-gwr.sel(ln.r.close ~ Covid, 
-                data=main, 
-                coords=cbind(main$lat, main$lon),
-                adapt=T) 
-  
-  b<-gwr.model = gwr(ln.r.close ~ Covid, 
-                     data=main, 
-                     adapt=band,
-                     hatmatrix=TRUE,
-                     se.fit=TRUE) 
-      

@@ -39,6 +39,8 @@ library(sf)
                     year = 2021,
                     state = 15,
                     geometry = TRUE)
+  
+  census<-st_transform(census, crs=st_crs(map))
 
 #Limit Parcel map and create centroid map
 
@@ -51,13 +53,7 @@ library(sf)
     mutate(par_area = st_area(.),
            lon = map_dbl(geometry, ~st_centroid(.x)[[1]]),
            lat = map_dbl(geometry, ~st_centroid(.x)[[2]]))
-  
-  m.cen<-m.data %>%
-    select(TMK, lon, lat) %>%
-    st_drop_geometry()
-  
-  m.cen <- st_as_sf(m.cen, crs = st_crs(map), coords = c("lon", "lat"))
-  
+ 
 #Create Distance to "beach" defined as edge of map
 
     map2 <- st_read(dsn="./Build/Input/Maps/Hawaii_State_Senate_Districts_2022.shp")
@@ -70,10 +66,11 @@ library(sf)
       st_cast(to = "POLYGON") %>%
       st_cast(to ="LINESTRING")
 
-    dist<-as.data.frame(st_distance(m.cen, map2[1])) #This calculates the min distance from point to edge of island
+    dist<-as.data.frame(st_distance(m.data, map2[1])) #This calculates the min distance from point to edge of island
+                                                      #Map2 has three objects and the main island outline is object 1
     
     dist <- dist %>%
-      rename("Beach" = 'st_distance(m.cen, map2[1])') 
+      rename("beach" = 'st_distance(m.data, map2[1])') 
     
     m.data<-cbind(m.data, dist)
  
@@ -83,16 +80,13 @@ library(sf)
     
     map2 <- map2 %>%
       select(objectid) %>%
-      st_transform(., crs=st_crs(map)) %>%
-      mutate(lon = map_dbl(geometry, ~st_centroid(.x)[[1]]),
-             lat = map_dbl(geometry, ~st_centroid(.x)[[2]])) %>%
-      st_drop_geometry() %>%
-      st_as_sf(., crs = st_crs(map), coords = c("lon", "lat"))
-      
-    dist<-as.data.frame(st_distance(m.cen, map2))
+      st_transform(., crs=st_crs(map))
+    
+    dist<-as.data.frame(st_distance(m.data, st_centroid(map2)))
+    
     
     dist <- dist %>%
-      mutate(rowname = m.cen$TMK) %>%
+      mutate(rowname = m.data$TMK) %>%
       pivot_longer(-rowname) %>%
       group_by(rowname) %>%
       summarize(park = min(value)) %>%
@@ -108,16 +102,12 @@ library(sf)
     map2 <- map2 %>%
       filter(island == "OAHU") %>%
       select(objectid) %>%
-      st_transform(., crs=st_crs(map)) %>%
-      mutate(lon = map_dbl(geometry, ~st_centroid(.x)[[1]]),
-             lat = map_dbl(geometry, ~st_centroid(.x)[[2]])) %>%
-      st_drop_geometry() %>%
-      st_as_sf(., crs = st_crs(map), coords = c("lon", "lat"))
+      st_transform(., crs=st_crs(map)) 
     
     dist<-as.data.frame(st_distance(m.data, map2))
     
     dist <- dist %>%
-      mutate(rowname = m.cen$TMK) %>%
+      mutate(rowname = m.data$TMK) %>%
       pivot_longer(-rowname) %>%
       group_by(rowname) %>%
       summarize(hospital = min(value)) %>%
@@ -132,139 +122,95 @@ library(sf)
     
     map2 <- map2 %>%
       select(objectid) %>%
-      st_transform(., crs=st_crs(map)) %>%
-      mutate(lon = map_dbl(geometry, ~st_centroid(.x)[[1]]),
-             lat = map_dbl(geometry, ~st_centroid(.x)[[2]])) %>%
-      st_drop_geometry() %>%
-      st_as_sf(., crs = st_crs(map), coords = c("lon", "lat"))
+      st_transform(., crs=st_crs(map))
     
-    dist<-as.data.frame(st_distance(m.data, map2))
+    dist<-as.data.frame(st_distance(m.data, st_centroid(map2)))
     
     dist <- dist %>%
-      mutate(rowname = m.cen$TMK) %>%
+      mutate(rowname = m.data$TMK) %>%
       pivot_longer(-rowname) %>%
       group_by(rowname) %>%
       summarize(airport = min(value)) %>%
       rename("TMK" = "rowname")
     
     m.data <- m.data %>%
-      left_join(., dist, by="TMK") %>%
-      distinct()
+      left_join(., dist, by="TMK") 
     
 #Get School Names
     map3 <- st_read(dsn="./Build/Input/Maps/Public_Schools.shp")
     
     map3 <- map3 %>%
-      st_transform(., crs=st_crs(map)) %>%
-      mutate(lon.sch = map_dbl(geometry, ~st_centroid(.x)[[1]]),
-             lat.sch = map_dbl(geometry, ~st_centroid(.x)[[2]]))  %>%
-      st_drop_geometry() %>%
-      select(sch_code, lon.sch, lat.sch)
- 
+      st_transform(., crs=st_crs(map))%>%
+      select(sch_code)
+    
     schbrid<-read.csv("./Build/Input/School Bridge.csv")
     
-    map2 <- st_read(dsn="./Build/Input/Maps/Elementary_School_Areas.shp")
-    
-    brid<- schbrid %>%
+    brid <- schbrid %>%
       filter(grepl("Elementary",sch_type),
              Name != "") %>%
       rename("elem_desc" = "Name")
+    
+    map2 <- st_read(dsn="./Build/Input/Maps/Elementary_School_Areas.shp") %>%
+      st_transform(., crs=st_crs(map)) 
     
     map2 <- map2 %>%
         left_join(., brid, by="elem_desc", relationship = "many-to-many")
     
     map2 <- map2 %>%
-        select(sch_code) %>%
-        filter(!is.na(sch_code)) %>%
-        st_transform(., crs=st_crs(map)) %>%
-        st_intersection(., m.cen) %>%
-        st_drop_geometry() %>%
-        filter(!duplicated(TMK)) %>%
-      left_join(., map3) 
+      select(sch_code) %>%
+      filter(!is.na(sch_code)) %>%
+      st_intersection(., m.data)%>%
+      st_drop_geometry() %>%
+      select(sch_code, TMK) %>%
+      filter(!duplicated(TMK)) %>%
+      left_join(., map3, by="sch_code") %>%
+      mutate(lon.sch = map_dbl(geometry, ~st_centroid(.x)[[1]]),
+             lat.sch = map_dbl(geometry, ~st_centroid(.x)[[2]])) %>%
+      select(-geometry)
     
     m.data<-m.data %>%
       left_join(., map2, by="TMK") %>%
-      mutate(sch_code = case_when( TMK == "139050025" ~ 108,
-                                   TMK == "173012014" ~ 412,
-                                   TMK == "139031002" ~ 108,
-                                   TMK == "139032078" ~ 108,
-                                   TMK == "139095037" ~ 108,
-                                   TMK == "139095039" ~ 108,
+      mutate(sch_code = case_when( TMK == "173012014" ~ 412,
                                    TMK == "173010007" ~ 207,
-                                   TMK == "173011004" ~ 207,
-                                   TMK == "137002044" ~ 100,
                                    TRUE ~ sch_code),
-             lon.sch = case_when( TMK == "139050025" ~ 633727.6,
-                                  TMK == "173012014" ~ 778129.3,
-                                  TMK == "139031002" ~ 633727.6,
-                                  TMK == "139032078" ~ 633727.6,
-                                  TMK == "139095037" ~ 633727.6,
-                                  TMK == "139095039" ~ 633727.6,
+             lon.sch = case_when( TMK == "173012014" ~ 778129.3,
                                   TMK == "173010007" ~ 597722.,
-                                  TMK == "173011004" ~ 597722.,
-                                  TMK == "137002044" ~ 629096.3,
                                   TRUE ~ lon.sch),
-             lat.sch = case_when( TMK == "139050025" ~ 2355490,
-                                  TMK == "173012014" ~ 2298021,
-                                  TMK == "139031002" ~ 2355490,
-                                  TMK == "139032078" ~ 2355490,
-                                  TMK == "139095037" ~ 2355490,
-                                  TMK == "139095039" ~ 2355490,
+             lat.sch = case_when( TMK == "173012014" ~ 2298021,
                                   TMK == "173010007" ~ 2377676,
-                                  TMK == "173011004" ~ 2377676,
-                                  TMK == "137002044" ~ 2353552,
-                                  TRUE ~ lat.sch)) %>%  
-      mutate(elem_sch = (sqrt(((lon.sch - lon)^2)+((lat.sch - lat)^2)))) %>%
+                                  TRUE ~ lat.sch),
+             elem_sch = (sqrt(((lon.sch - lon)^2)+((lat.sch - lat)^2)))) %>%
       select(-c(lon.sch, lat.sch, sch_code))
 
+    #Middle Schools
     
-    map2 <- st_read(dsn="./Build/Input/Maps/Middle_School_Areas.shp")    
- 
     brid<- schbrid %>%
       filter(grepl("Intermediate" ,sch_type) | grepl("Middle", sch_type),
              Name != "")    %>%
       rename("int_desc" = "Name")
     
-    map2 <- map2 %>%
+    map2 <- st_read(dsn="./Build/Input/Maps/Middle_School_Areas.shp")  %>%  
+      st_transform(., crs=st_crs(map)) %>%
       left_join(., brid, by="int_desc", relationship = "many-to-many")
     
     map2 <- map2 %>%
       select(sch_code) %>%
       filter(!is.na(sch_code)) %>%
-      st_transform(., crs=st_crs(map)) %>%
-      st_intersection(., m.cen) %>%
+      st_intersection(., m.data) %>%
       st_drop_geometry() %>%
+      select(sch_code, TMK) %>%
       filter(!duplicated(TMK)) %>%
-      left_join(., map3)
+      left_join(., map3, by="sch_code") %>%
+      mutate(lon.sch = map_dbl(geometry, ~st_centroid(.x)[[1]]),
+             lat.sch = map_dbl(geometry, ~st_centroid(.x)[[2]])) %>%
+      select(-geometry)
       
-    
     m.data<-m.data %>%
-      left_join(., map2, by="TMK")%>%
-      mutate(sch_code = case_when( TMK == "139050025" ~ 139,
-                                   TMK == "139031002" ~ 139,
-                                   TMK == "139032078" ~ 139,
-                                   TMK == "139095037" ~ 139,
-                                   TMK == "139095039" ~ 139,
-                                   TMK == "137002044" ~ 139,
-                                   TRUE ~ sch_code),
-             lon.sch = case_when( TMK == "139050025" ~ 630803.7,
-                                  TMK == "139031002" ~ 630803.7,
-                                  TMK == "139032078" ~ 630803.7,
-                                  TMK == "139095037" ~ 630803.7,
-                                  TMK == "139095039" ~ 630803.7,
-                                  TMK == "137002044" ~ 630803.7,
-                                  TRUE ~ lon.sch),
-             lat.sch = case_when( TMK == "139050025" ~ 2354262,
-                                  TMK == "139031002" ~ 2354262,
-                                  TMK == "139032078" ~ 2354262,
-                                  TMK == "139095037" ~ 2354262,
-                                  TMK == "139095039" ~ 2354262,
-                                  TMK == "137002044" ~ 2354262,
-                                  TRUE ~ lat.sch)) %>%  
+      left_join(., map2, by="TMK") %>%
       mutate(mid_sch = (sqrt(((lon.sch - lon)^2)+((lat.sch - lat)^2)))) %>%
       select(-c(lon.sch, lat.sch, sch_code))
     
-    map2 <- st_read(dsn="./Build/Input/Maps/High_School_Areas.shp")  
+    #High Schools
     
     brid<- schbrid %>%
       distinct() %>%
@@ -275,41 +221,24 @@ library(sf)
       distinct() %>%
       rename("high_desc" = "Name")
     
-    map2 <- map2 %>%
+    map2 <- st_read(dsn="./Build/Input/Maps/High_School_Areas.shp")%>%
+      st_transform(., crs=st_crs(map)) %>%
       left_join(., brid, by="high_desc", relationship = "many-to-many")
     
     map2 <- map2 %>%
       select(sch_code) %>%
       filter(!is.na(sch_code)) %>%
-      st_transform(., crs=st_crs(map)) %>%
-      st_intersection(., m.cen) %>%
+      st_intersection(., m.data) %>%
       st_drop_geometry() %>%
+      select(sch_code, TMK) %>%
       filter(!duplicated(TMK)) %>%
-      left_join(., map3)
+      left_join(., map3, by="sch_code") %>%
+      mutate(lon.sch = map_dbl(geometry, ~st_centroid(.x)[[1]]),
+             lat.sch = map_dbl(geometry, ~st_centroid(.x)[[2]])) %>%
+      select(-geometry)
      
     m.data<-m.data %>%
       left_join(., map2, by="TMK") %>%
-      mutate(sch_code = case_when( TMK == "139050025" ~ 154,
-                                   TMK == "139031002" ~ 154,
-                                   TMK == "139032078" ~ 154,
-                                   TMK == "139095037" ~ 154,
-                                   TMK == "139095039" ~ 154,
-                                   TMK == "137002044" ~ 119,
-                                   TRUE ~ sch_code),
-             lon.sch = case_when( TMK == "139050025" ~ 635101.9,
-                                  TMK == "139031002" ~ 635101.9,
-                                  TMK == "139032078" ~ 635101.9,
-                                  TMK == "139095037" ~ 635101.9,
-                                  TMK == "139095039" ~ 635101.9,
-                                  TMK == "137002044" ~ 627209.4,
-                                  TRUE ~ lon.sch),
-             lat.sch = case_when( TMK == "139050025" ~ 2354367,
-                                  TMK == "139031002" ~ 2354367,
-                                  TMK == "139032078" ~ 2354367,
-                                  TMK == "139095037" ~ 2354367,
-                                  TMK == "139095039" ~ 2354367,
-                                  TMK == "137002044" ~ 2353334,
-                                  TRUE ~ lat.sch)) %>%  
       mutate(high_sch = (sqrt(((lon.sch - lon)^2)+((lat.sch - lat)^2)))) %>%
       select(-c(lon.sch, lat.sch, sch_code))
     
@@ -320,20 +249,22 @@ library(sf)
     map2 <- map2 %>%
       select(fld_zone) %>%
       st_transform(., crs=st_crs(map)) %>%
-      st_intersection(., m.cen) %>%
+      st_intersection(., m.data)%>%
       st_drop_geometry() %>%
+      select(TMK, fld_zone) %>%
       filter(!duplicated(TMK))
     
     m.data<-m.data %>%
       left_join(., map2, by="TMK")
+    
 #Create maps for visualizations and to obtain Census link
 
 cen.map <- census %>%
   select(GEOID, geometry) %>%
   distinct() %>%
   st_transform(., crs=st_crs(map)) %>%
-  st_intersection(., m.data)  %>%
-  select(TMK, GEOID, par_area, lat, lon) %>%
+  st_intersection(., m.data)%>%
+  select(TMK, GEOID, par_area) %>%
   distinct()
 
 cen.map <- cen.map %>%
@@ -372,8 +303,7 @@ cen.data2<-cen.map %>%
 #Merge Census Data and other Map Data
 
   map.data <- m.data %>%
-    st_drop_geometry() %>%
-    select(-c(TAXPIN, REC_AREA_S, TYPE, STREET_PAR, GISAcres, lon, lat)) %>%
+    select(-c(TAXPIN, REC_AREA_S, TYPE, STREET_PAR, GISAcres)) %>%
     left_join(., cen.data2, by="TMK") %>%
     filter(!is.na(per_white))
 

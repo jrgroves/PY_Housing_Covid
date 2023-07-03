@@ -175,12 +175,16 @@ library(readxl)
                                     TRUE ~ BuildingNa)) %>%
       filter(SQFTGarageCarport < 5001) %>%
       mutate(Age = year - YearBuilt,
-             Age2 = Age * Age,
+             Age2 = Age^2,
              Age.r = year - YearRemodeled,
              Age.r = case_when(YearRemodeled == 0 ~ 0,
                                TRUE ~ Age.r),
              Parking = case_when(ParkingTotal > 4 ~ "5 or More",
-                                 TRUE ~ as.character(ParkingTotal)))
+                                 TRUE ~ as.character(ParkingTotal))) %>%
+      mutate(livSQFT = SQFTRoofedLiving) %>%
+      filter(livSQFT > 99,
+             Age >= 0) %>%
+      select(-SQFTRoofedLiving)
     
     #Add Sales Frequency
     
