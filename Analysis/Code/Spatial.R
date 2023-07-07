@@ -18,16 +18,54 @@ main <- core.2 %>%
   filter(!is.na(fld_zone))  #Removes two observations with no flood zone
 
 #Create Spatial Weights for Spatial Regressions
+work<-core.2 %>%
+  distinct(TMK, .keep_all = TRUE) %>%
+  arrange(CloseDate) %>%
+  slice(3000:nrow(core.2))
 
-main.2<-main %>%
-  select(TMK, lat, lon) %>%
-  distinct() %>%
-  st_as_sf(., coords=c("lon", "lat"), crs=st_crs(map))
+coords <- cbind(work$lon, work$lat)
+k1 <- knn2nb(knearneigh(coords))
 
-W<-knn2nb(knearneigh(main.2, k=5))
-W2 <- nb2listw(W)
+critical.threshold <- max(unlist(nbdists(k1,coords)))
+critical.threshold
+
+nb.dist.band <- dnearneigh(coords, 0, critical.threshold)
+nb<-nb.dist.band
+
+#Conversion to only previous sales######
+
+as.nb.sgbp <- function(x) {
+  attrs <- attributes(x)
+  x <- lapply(x, function(i) { if(length(i) == 0L) 0L else i } )
+  attributes(x) <- attrs
+  class(x) <- "nb"
+  x
+}
+
+for(i in seq(1,length(nb),1)){
+  c<-lapply(nb[[i]], function(x) x > i)
+  nb[[i]][unlist(c)] <- NA
+}
+
+c<-lapply(nb, function(x) x[!is.na(x)])
+############
+
+dd<-as.nb.sgbp(c)
+
+distances <- nbdists(nb.dist.band,coords)
+d.c <- nbdists(dd,coords)
+
+invd1 <- lapply(distances, function(x) (1/x))
+invd1a <- lapply(d.c, function(x) (1/x))
+
+length(invd1)
+length(invd1a)
+
+invd.weights <- nb2listw(nb.dist.band,glist = invd1,style = "B")
+invd.weights2 <- nb2listw(dd,glist = invd1a, style = "B", zero.policy = TRUE)
+
+N<-fit.lag<-lagsarlm(lnClose ~ Covid+Age,
+                  data = work, 
+                  listw = invd.weights) 
 
 
-mod.1<-lagsarlm(ln.r.close~Covid,data=main,W2,
-                method="eigen")
-head(W)
