@@ -19,11 +19,37 @@ main <- core.2 %>%
 
 #Create Spatial Weights for Spatial Regressions
 work<-core.2 %>%
-  distinct(TMK, .keep_all = TRUE) %>%
-  arrange(CloseDate) 
+  select(TMK, CloseDate, lon, lat, lnClose) %>%
+  filter(CloseDate == max(CloseDate), .by=TMK) %>%
+  filter(lnClose == max(lnClose), .by=TMK) %>%
+  distinct(TMK, .keep_all = TRUE)
 
 coords <- cbind(work$lon, work$lat)
 k1 <- knn2nb(knearneigh(coords, k = 7))
+
+invd.weights <- nb2listw(k1,style = "W")
+
+N<-fit.lag<-lagsarlm(ln.r.close ~ Covid + BedsTotal + BathsFull + BathsHalf + DOM + Stories + SqftTotal +
+                     Age + Age2 + Basement + factor(cond) + factor(LUC) + factor(year) +
+                     Split + PUD + LowRise + HighRise + Townhouse + Condotel + Duplex + WalkUP +
+                     beach + park + hospital + airport + per_black + per_asian + per_hawaian +
+                     per_owner + per_occupied + Parking + HOA + remod + Elevator + elem_sch + mid_sch + high_sch,
+                     data = work, 
+                     listw = invd.weights) 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 critical.threshold <- max(unlist(nbdists(k1,coords)))
 critical.threshold
@@ -35,11 +61,7 @@ distances <- nbdists(nb.dist.band,coords)
 
 invd1 <- lapply(distances, function(x) ((1/x)*100))
 
-invd.weights <- nb2listw(k1,style = "W")
 
-N<-fit.lag<-lagsarlm(lnClose ~ Covid+Age,
-                  data = work, 
-                  listw = invd.weights) 
 
 #Conversion to only previous sales######
 
