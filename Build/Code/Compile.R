@@ -7,10 +7,14 @@ rm(list=ls())
 library(tidyverse)
 library(readxl)
 
+
 #Read in Pre-processed data
 
   load("./Build/Output/core.RData")
   load("./Build/Output/MapData.RData")
+  
+    map.data2 <- map.data %>%
+          sf::st_drop_geometry()
 
 #Load Covid Data from https://public.tableau.com/app/profile/docd.epi/viz/HawaiiCOVID-19WorkbooksandData/EpidemicCurves
 
@@ -25,8 +29,8 @@ library(readxl)
 #Merge Covid and Map Data with Core Data
   core<-core %>%
     mutate(Date = CloseDate) %>%
-    left_join(., covid, by="Date") %>%
-    left_join(., map.data, by="TMK") %>%
+    left_join(., covid, by="Date")  %>%
+    left_join(., map.data2, by="TMK") %>%
     filter(!is.na(lat))  #removes about 111 units not in map data 
   
 #Remove data not used and clean usable data for analysis
