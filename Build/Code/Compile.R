@@ -58,11 +58,12 @@ library(readxl)
            remod = case_when(YearRemodeled == 0 ~ 0,  #Dummy for remodel
                              TRUE ~ 1),
            Covid = Covid + 0,
-           par_area = as.numeric(par_area),
-           beach = as.numeric(beach),
-           park = as.numeric(park),
-           hospital = as.numeric(hospital),
-           airport = as.numeric(airport)) %>%
+           par_area = as.numeric(par_area)*0.000247105,
+           beach = as.numeric(beach)/1000,
+           park = as.numeric(park)/1000,
+           hospital = as.numeric(hospital)/1000,
+           airport = as.numeric(airport)/1000,
+           Age2 = Age2/1000) %>%
     rename("ListDate" = "ListingContractDate") %>%
     select(-c(AssociationFee, ElevatorsNumberOf, ParkingTotal, Topography, PropertyFrontage,SQFTRoofedOther,
               UnitFeatures))
