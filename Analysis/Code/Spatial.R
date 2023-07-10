@@ -3,25 +3,19 @@ rm(list=ls())
 library(spatialreg)
 library(tidyverse)
 library(spdep)
+library(spgwr)
+
+#Read in Cleaned Data
 
 #Read in Cleaned Data
 
 load("./Build/Output/CoreData.RData")
-map<-st_read(dsn="./Build/Input/Maps/oahtmk.shp")
 
-#Create New Variables for Analysis
-main <- core.2 %>%
-  mutate(Covid2 = case_when(CloseDate <= "2020-03-01" ~ 0,
-                            CloseDate >  "2022-06-30" ~ 0,
-                            TRUE ~ 1),
-         Age2 = Age2 / 1000) %>%
-  filter(!is.na(fld_zone)) #Removes two observations with no flood zone
+GWRbandwidth <- gwr.sel(ln.r.close ~ Covid + DOM + factor(year), data=main.s, 
+                        coords=cbind(main.s$lon, main.s$lat),adapt=T)
 
-#Create Spatial Weights for Spatial Regressions
-work<-core.2 %>%
-  filter(CloseDate == max(CloseDate), .by=TMK) %>%
-  filter(lnClose == max(lnClose), .by=TMK) %>%
-  distinct(TMK, .keep_all = TRUE)
+gwr.model = gwr(ln.r.close ~ Covid + DOM + factor(year), data=main.s,  coords=cbind(main.s$lon, main.s$lat), 
+                adapt=GWRbandwidth, hatmatrix=TRUE, se.fit=TRUE) 
 
 coords <- cbind(work$lon, work$lat)
 k1 <- knn2nb(knearneigh(coords, k = 7))

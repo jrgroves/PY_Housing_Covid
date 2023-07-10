@@ -26,14 +26,14 @@ mod3 <- lm(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFull + Bat
            cluster = City,
            data=main)
 
-mod4 <- lm(n.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFull + BathsHalf + 
+mod4 <- lm(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFull + BathsHalf + 
              Stories + SqftTotal + Age + Age2 + Basement + factor(cond) +
              Split + PUD + LowRise + HighRise + Townhouse + Condotel + Duplex + WalkUP + 
              factor(LUC) + Parking + HOA + remod + Elevator, 
            cluster = City,
            data=main)
 
-mod5 <- lm(n.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFull + BathsHalf + 
+mod5 <- lm(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFull + BathsHalf + 
              Stories + SqftTotal + Age + Age2 + Basement + factor(cond) +
              Split + PUD + LowRise + HighRise + Townhouse + Condotel + Duplex + WalkUP + 
              factor(LUC) + Parking + HOA + remod + Elevator +
@@ -42,7 +42,7 @@ mod5 <- lm(n.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFull + Bath
            cluster = City,
            data=main)
 
-mod6 <- lm(n.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFull + BathsHalf + 
+mod6 <- lm(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFull + BathsHalf + 
              Stories + SqftTotal + Age + Age2 + Basement + factor(cond) +
              Split + PUD + LowRise + HighRise + Townhouse + Condotel + Duplex + WalkUP + 
              factor(LUC) + Parking + HOA + remod + Elevator +
