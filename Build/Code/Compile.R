@@ -34,7 +34,7 @@ library(readxl)
     filter(!is.na(lat))  #removes about 111 units not in map data 
   
 #Remove data not used and clean usable data for analysis
-  core.2 <- core %>%
+  main <- core %>%
     select(-c(AssociationFee2Includes, AssociationFeeIncludes, AssociationFeeTotal, Easements,
               ElementarySchool, FeeOptions, FeePurchase, HighSchool, Inclusions, LandTenure, Location,
               LotFeatures, MaintenanceExpense, MiddleOrJuniorSchool, MLSAreaMajor, ParkingFeatures, RoadFrontage,
@@ -63,10 +63,45 @@ library(readxl)
            park = as.numeric(park)/1000,
            hospital = as.numeric(hospital)/1000,
            airport = as.numeric(airport)/1000,
-           Age2 = Age2/1000) %>%
+           elem_sch = as.numeric(elem_sch)/1000,
+           mid_sch = as.numeric(mid_sch)/1000,
+           high_sch = as.numeric(high_sch)/1000,
+           Covid2 = case_when(CloseDate <= "2020-03-01" ~ 0,
+                             CloseDate >  "2022-06-30" ~ 0,
+                             TRUE ~ 1),
+           Age2 = Age2 / 1000,
+           City = toupper(City),
+           City = case_when(City == "EWA BEAHC" ~ "EWA BEACH",
+                            City == "HON" ~ "HONOLULU",
+                            City == "HON." ~ "HONOLULU",
+                            City == "HONH" ~ "HONOLULU",
+                            City == "HONOKUKU" ~ "HONOLULU",
+                            City == "HONOLULLU" ~ "HONOLULU",
+                            City == "HONOLULU," ~ "HONOLULU",
+                            City == "HONOLUU" ~ "HONOLULU",
+                            City == "HONOLUULU" ~ "HONOLULU",
+                            City == "HONOULU" ~ "HONOLULU",
+                            City == "KANOEHE" ~ "KANEOHE",
+                            City == "PEARL" ~ "PEARL CITY",
+                            City == "PEARL  CITY" ~ "PEARL CITY",
+                            City == "EVA BEACH" ~ "EWA BEACH",
+                            City == "EWA" ~ "EWA BEACH",
+                            City == "KONEOHE" ~ "KANEOHE",
+                            City == "WAIHPAHU" ~ "WAIPAHU",
+                            City == "MILIANI" ~ "MILILANI",
+                            City == "MILILANI MAUKA" ~ "MILILANI",
+                            TRUE ~ City)) %>%
     rename("ListDate" = "ListingContractDate") %>%
     select(-c(AssociationFee, ElevatorsNumberOf, ParkingTotal, Topography, PropertyFrontage,SQFTRoofedOther,
-              UnitFeatures))
+              UnitFeatures)) %>%
+    filter(!is.na(fld_zone)) #Removes two observations with no flood zone
+  
+  
+#Create Single Observations set for Spatial Weights for Spatial Regressions
+  main.s<-main %>%
+    filter(CloseDate == max(CloseDate), .by=TMK) %>%
+    filter(lnClose == max(lnClose), .by=TMK) %>%
+    distinct(TMK, .keep_all = TRUE)  
            
- save(core.2, file="./Build/Output/CoreData.RData")
+ save(main,main.s, file="./Build/Output/CoreData.RData")
 
