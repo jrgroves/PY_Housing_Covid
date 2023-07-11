@@ -17,6 +17,9 @@ GWRbandwidth <- gwr.sel(ln.r.close ~ Covid + DOM + factor(year), data=main.s,
 gwr.model = gwr(ln.r.close ~ Covid + DOM + factor(year), data=main.s,  coords=cbind(main.s$lon, main.s$lat), 
                 adapt=GWRbandwidth, hatmatrix=TRUE, se.fit=TRUE) 
 
+
+
+
 coords <- cbind(work$lon, work$lat)
 k1 <- knn2nb(knearneigh(coords, k = 7))
 

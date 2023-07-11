@@ -30,7 +30,8 @@ library(spgwr)
   sum.data <- main %>%
     select(num_sale, Covid, Covid2, Cases, BathsFull, BathsHalf, BedsTotal,DOM,livSQFT,SQFTGarageCarport,real.list.price,real.close.price,
            Basement, Split, PUD, LowRise, HighRise,Townhouse,Condotel,SingleFam, Duplex, MultiDwell, WalkUP,
-           pool, Age, Age2, Age.r, par_area, beach, park, hospital, airport, per_white, per_black, per_asian,
+           pool, Age, Age2, Age.r, SqftTotal, par_area, beach, park, hospital, airport, elem_sch, mid_sch, high_sch,
+           per_white, per_black, per_asian,
            per_hawaian,per_occupied,per_vacant,per_owner,per_renter, HOA, Elevator, remod, lat, lon) 
   sum.data <- cbind(sum.data, sumfac)
   
@@ -116,7 +117,8 @@ library(spgwr)
  sum.data <- main %>%
    select(num_sale, Covid, Covid2, Cases, BathsFull, BathsHalf, BedsTotal,DOM,livSQFT,SQFTGarageCarport,real.list.price,real.close.price,
           Basement, Split, PUD, LowRise, HighRise,Townhouse,Condotel,SingleFam, Duplex, MultiDwell, WalkUP,
-          pool, Age, Age2, Age.r, par_area, beach, park, hospital, airport, per_white, per_black, per_asian,
+          pool, Age, Age2, Age.r, SqftTotal, par_area, beach, park, hospital, airport, elem_sch, mid_sch, high_sch,
+          per_white, per_black, per_asian,
           per_hawaian,per_occupied,per_vacant,per_owner,per_renter, HOA, Elevator, remod, lat, lon) 
  sum.data <- cbind(sum.data, sumfac)
  
