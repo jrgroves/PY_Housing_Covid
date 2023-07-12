@@ -6,6 +6,7 @@ rm(list=ls())
 
 library(tidyverse)
 library(estimatr)
+library(openxlsx)
 
 #Read in Cleaned Data
 
@@ -44,8 +45,10 @@ mod6 <- lm(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFull + Bat
            data=main)
 
 stargazer(mod1, mod2, mod3, mod4, mod5, mod6, type = "text", 
-          file="./Analysis/Output/Reg1.txt")
+          out="./Analysis/Output/Reg1.txt")
 save(mod1, mod2, mod3, mod4, mod5, mod6, file="./Analysis/Output/Reg1.RData")
+
+#Full Model with clustered standard errors
 
 mod1 <- lm_robust(ln.r.close ~ Covid, 
                   cluster= PostalCode,
@@ -86,9 +89,26 @@ mod6 <- lm_robust(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFul
                   cluster= PostalCode,
                   data=main)
 
-save(mod1, mod2, mod3, mod4, mod5, mod6, file="./Analysis/Output/Reg1_Robust.RData")
+models <- c("mod6", "mod5", "mod4", "mod3", "mod2", "mod1")
 
-#Regressions with smaller, one-sale data
+rob.out<-function(x){
+  temp <- x %>% 
+    tidy() %>%
+    select(term, estimate, std.error,statistic, p.value)
+  return(temp)
+}
+
+j<-1
+for(i in models){
+  TEMP <- rob.out(get(i))
+  ifelse(j==1, OUT <- TEMP, OUT<-left_join(OUT, TEMP, by= "term"))
+  j <- j+1
+}
+
+save(mod1, mod2, mod3, mod4, mod5, mod6, file="./Analysis/Output/Reg1_Robust.RData")
+rob.xlsx <- write.xlsx(OUT, file = "./Analysis/Output/Reg1_Rob.xlsx", asTable = FALSE)
+
+#Regressions with smaller, one-sale data (last sell in set)
 main <- main.s
 
 mod1 <- lm_robust(ln.r.close ~ Covid, 
@@ -131,3 +151,65 @@ mod6 <- lm_robust(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFul
                   data=main)
 
 save(mod1, mod2, mod3, mod4, mod5, mod6, file="./Analysis/Output/Reg2_Robust.RData")
+
+j<-1
+for(i in models){
+  TEMP <- rob.out(get(i))
+  ifelse(j==1, OUT <- TEMP, OUT<-left_join(OUT, TEMP, by= "term"))
+  j <- j+1
+}
+
+rob.xlsx <- write.xlsx(OUT, file = "./Analysis/Output/Reg2_Rob.xlsx", asTable = FALSE)
+
+#Regressions with smaller, one-sale data (first sell in set)
+main <- main.s2
+
+mod1 <- lm_robust(ln.r.close ~ Covid, 
+                  cluster= PostalCode,
+                  data = main) 
+
+mod2 <- lm_robust(ln.r.close ~ Covid + DOM + factor(year),
+                  cluster= PostalCode,
+                  data = main) 
+
+mod3 <- lm_robust(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFull + BathsHalf + 
+                    Stories + SqftTotal + Age + Age2 + Basement + factor(cond), 
+                  cluster= PostalCode,
+                  data=main)
+
+mod4 <- lm_robust(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFull + BathsHalf + 
+                    Stories + SqftTotal + Age + Age2 + Basement + factor(cond) +
+                    Split + PUD + LowRise + HighRise + Townhouse + Condotel + Duplex + WalkUP + 
+                    factor(LUC) + Parking + HOA + remod + Elevator, 
+                  cluster= PostalCode,
+                  data=main)
+
+mod5 <- lm_robust(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFull + BathsHalf + 
+                    Stories + SqftTotal + Age + Age2 + Basement + factor(cond) +
+                    Split + PUD + LowRise + HighRise + Townhouse + Condotel + Duplex + WalkUP + 
+                    factor(LUC) + Parking + HOA + remod + Elevator +
+                    beach + park + hospital + airport  + elem_sch + 
+                    mid_sch + high_sch + lat + lon, 
+                  cluster= PostalCode,
+                  data=main)
+
+mod6 <- lm_robust(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFull + BathsHalf + 
+                    Stories + SqftTotal + Age + Age2 + Basement + factor(cond) +
+                    Split + PUD + LowRise + HighRise + Townhouse + Condotel + Duplex + WalkUP + 
+                    factor(LUC) + Parking + HOA + remod + Elevator +
+                    beach + park + hospital + airport  + elem_sch + 
+                    mid_sch + high_sch + lat + lon + 
+                    per_black + per_asian + per_hawaian + per_owner + per_occupied, 
+                  cluster= PostalCode,
+                  data=main)
+
+save(mod1, mod2, mod3, mod4, mod5, mod6, file="./Analysis/Output/Reg2_Robust.RData")
+
+j<-1
+for(i in models){
+  TEMP <- rob.out(get(i))
+  ifelse(j==1, OUT <- TEMP, OUT<-left_join(OUT, TEMP, by= "term"))
+  j <- j+1
+}
+
+rob.xlsx <- write.xlsx(OUT, file = "./Analysis/Output/Reg2s_Rob.xlsx", asTable = FALSE)

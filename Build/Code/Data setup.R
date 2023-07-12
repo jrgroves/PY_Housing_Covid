@@ -5,18 +5,21 @@
 rm(list=ls())
 
 library(tidyverse)
-library(readxl)
+library(openxlsx)
 
 #Read in Raw Sales Data from PY and Others
 
-    raw.data<-read_excel("./Build/Input/Sales Data 1.xlsx")
+    raw.data<-read.xlsx("./Build/Input/Sales Data 1.xlsx", detectDates=TRUE)
     
     raw.data$CloseDate<-as.POSIXlt(raw.data$CloseDate, format="%m_%d_%Y",tz="UTC")
     raw.data$ListingContractDate<-as.POSIXlt(raw.data$ListingContractDate,format="%m_%d_%Y",tz="UTC")
     
-    raw.data2<-read_excel("./Build/Input/Sales Data 2.xlsx")
+    raw.data2<-read.xlsx("./Build/Input/Sales Data 2.xlsx", detectDates=TRUE)
     
-    cpi<-read_excel("./Build/Input/cpi.xlsx")
+    raw.data2$CloseDate<-as.POSIXlt(raw.data2$CloseDate, format="%Y-%m-%d",tz="UTC")
+    raw.data2$ListingContractDate<-as.POSIXlt(raw.data2$ListingContractDate,format="%Y-%m-%d",tz="UTC")
+    
+    cpi<-read.xlsx("./Build/Input/cpi.xlsx")
       cpi <- cpi %>%
         select(Series2, CPI)
 
