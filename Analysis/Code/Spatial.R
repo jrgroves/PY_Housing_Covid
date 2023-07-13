@@ -11,6 +11,15 @@ library(spgwr)
 
 load("./Build/Output/CoreData.RData")
   rm(main)
+  
+#Functions
+  as.nb.sgbp <- function(x) {
+    attrs <- attributes(x)
+    x <- lapply(x, function(i) { if(length(i) == 0L) 0L else i } )
+    attributes(x) <- attrs
+    class(x) <- "nb"
+    x
+  }
 
 #Create Weieghts for Distance Based W
   work<-main.s
@@ -31,27 +40,30 @@ load("./Build/Output/CoreData.RData")
     
 #Spatial AR Regressions
   
-  mod1 <- lagsarlm(lnClose ~ Covid,
+  mod1 <- gstsls(lnClose ~ Covid,
                    data = work, 
-                   listw = invd.weights)
+                   listw = invd.weights,
+                 verbose = TRUE)
  
-  mod2 <- lagsarlm(ln.r.close ~ Covid + DOM + factor(year),
+  mod2 <- gstsls(ln.r.close ~ Covid + DOM + factor(year),
                    data = work, 
-                   listw = invd.weights)
+                   listw = invd.weights,
+                 verbose = TRUE)
   
-  mod3 <- lagsarlm(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFull + BathsHalf + 
+  mod3 <- gstsls(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFull + BathsHalf + 
                       Stories + SqftTotal + Age + Age2 + Basement + factor(cond), 
                    data = work, 
-                   listw = invd.weights)
+                   listw = invd.weights,
+                 verbose = TRUE)
   
-  mod4 <- lagsarlm(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFull + BathsHalf + 
+  mod4 <- gstsls(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFull + BathsHalf + 
                       Stories + SqftTotal + Age + Age2 + Basement + factor(cond) +
                       Split + PUD + LowRise + HighRise + Townhouse + Condotel + Duplex + WalkUP + 
                       factor(LUC) + Parking + HOA + remod + Elevator, 
                    data = work, 
                    listw = invd.weights)
   
-  mod5 <- lagsarlm(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFull + BathsHalf + 
+  mod5 <- gstsls(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFull + BathsHalf + 
                       Stories + SqftTotal + Age + Age2 + Basement + factor(cond) +
                       Split + PUD + LowRise + HighRise + Townhouse + Condotel + Duplex + WalkUP + 
                       factor(LUC) + Parking + HOA + remod + Elevator +
@@ -60,7 +72,7 @@ load("./Build/Output/CoreData.RData")
                    data = work, 
                    listw = invd.weights)
   
-  mod6 <- lagsarlm(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFull + BathsHalf + 
+  mod6 <- gstsls(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFull + BathsHalf + 
                       Stories + SqftTotal + Age + Age2 + Basement + factor(cond) +
                       Split + PUD + LowRise + HighRise + Townhouse + Condotel + Duplex + WalkUP + 
                       factor(LUC) + Parking + HOA + remod + Elevator +
@@ -71,9 +83,8 @@ load("./Build/Output/CoreData.RData")
                    listw = invd.weights)
 
   save(mod1, mod2, mod3, mod4, mod5, mod6, file="./Analysis/Output/Spat1.RData")
-  
-
-#Create Weieghts for Distance Based W (First Sale)
+ 
+#Create Weights for Distance Based W (First Sale)
   work<-main.s2
   
   coords <- cbind(work$lon, work$lat)
@@ -92,27 +103,27 @@ load("./Build/Output/CoreData.RData")
   
   #Spatial AR Regressions
   
-  mod1 <- lagsarlm(lnClose ~ Covid,
+  mod1 <- gstsls(lnClose ~ Covid,
                    data = work, 
                    listw = invd.weights)
   
-  mod2 <- lagsarlm(ln.r.close ~ Covid + DOM + factor(year),
+  mod2 <- gstsls(ln.r.close ~ Covid + DOM + factor(year),
                    data = work, 
                    listw = invd.weights)
   
-  mod3 <- lagsarlm(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFull + BathsHalf + 
+  mod3 <- gstsls(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFull + BathsHalf + 
                      Stories + SqftTotal + Age + Age2 + Basement + factor(cond), 
                    data = work, 
                    listw = invd.weights)
   
-  mod4 <- lagsarlm(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFull + BathsHalf + 
+  mod4 <- gstsls(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFull + BathsHalf + 
                      Stories + SqftTotal + Age + Age2 + Basement + factor(cond) +
                      Split + PUD + LowRise + HighRise + Townhouse + Condotel + Duplex + WalkUP + 
                      factor(LUC) + Parking + HOA + remod + Elevator, 
                    data = work, 
                    listw = invd.weights)
   
-  mod5 <- lagsarlm(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFull + BathsHalf + 
+  mod5 <- gstsls(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFull + BathsHalf + 
                      Stories + SqftTotal + Age + Age2 + Basement + factor(cond) +
                      Split + PUD + LowRise + HighRise + Townhouse + Condotel + Duplex + WalkUP + 
                      factor(LUC) + Parking + HOA + remod + Elevator +
@@ -121,7 +132,7 @@ load("./Build/Output/CoreData.RData")
                    data = work, 
                    listw = invd.weights)
   
-  mod6 <- lagsarlm(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFull + BathsHalf + 
+  mod6 <- ML_modles(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFull + BathsHalf + 
                      Stories + SqftTotal + Age + Age2 + Basement + factor(cond) +
                      Split + PUD + LowRise + HighRise + Townhouse + Condotel + Duplex + WalkUP + 
                      factor(LUC) + Parking + HOA + remod + Elevator +
@@ -129,63 +140,10 @@ load("./Build/Output/CoreData.RData")
                      mid_sch + high_sch +  
                      per_black + per_asian + per_hawaian + per_owner + per_occupied, 
                    data = work, 
-                   listw = invd.weights)
+                   listw = invd.weights,
+                   Durbin)
   
-  save(mod1, mod2, mod3, mod4, mod5, mod6, file="./Analysis/Output/Spat1.RData")
-
-  
-  
-  
-  
-  
-k1 <- knn2nb(knearneigh(coords, k = 7))
-
-invd.weights <- nb2listw(k1,style = "W")
+  save(mod1, mod2, mod3, mod4, mod5, mod6, file="./Analysis/Output/Spat2.RData")
 
 
 
-
-
-
-
-
-
-
-
-
-
-#Conversion to only previous sales######
-
-as.nb.sgbp <- function(x) {
-  attrs <- attributes(x)
-  x <- lapply(x, function(i) { if(length(i) == 0L) 0L else i } )
-  attributes(x) <- attrs
-  class(x) <- "nb"
-  x
-}
-
-nb<-k1
-
-
-for(i in seq(1,length(nb),1)){
-  c<-lapply(nb[[i]], function(x) x > i)
-  nb[[i]][unlist(c)] <- NA
-}
-
-c<-lapply(nb, function(x) x[!is.na(x)])
-############
-
-c<-as.nb.sgbp(c)
-invd.weights2 <- nb2listw(c, style = "B", zero.policy = TRUE)
-
-N2<-fit.lag<-lagsarlm(lnClose ~ Covid+Age,
-                     data = work, 
-                     listw = invd.weights2,
-                     zero.policy=TRUE) 
-
-
-GWRbandwidth <- gwr.sel(ln.r.close ~ Covid + DOM + factor(year), data=main.s, 
-                        coords=cbind(main.s$lon, main.s$lat),adapt=T)
-
-gwr.model = gwr(ln.r.close ~ Covid + DOM + factor(year), data=main.s,  coords=cbind(main.s$lon, main.s$lat), 
-                adapt=GWRbandwidth, hatmatrix=TRUE, se.fit=TRUE) 
