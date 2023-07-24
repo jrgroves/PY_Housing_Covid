@@ -22,7 +22,8 @@ load("./Build/Output/CoreData.RData")
   }
 
 #Create Weieghts for Distance Based W
-  work<-main.s
+  work<-main.s %>%
+    filter(PropertyType == "Single Family")
   
   coords <- cbind(work$lon, work$lat)
   
@@ -82,7 +83,7 @@ load("./Build/Output/CoreData.RData")
   
   mod4 <- lagsarlm(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFull + BathsHalf + 
                       Stories + SqftTotal + Age + Age2 + Basement + factor(cond) +
-                      Split + PUD + LowRise + HighRise + Townhouse + Condotel + Duplex + WalkUP + 
+                      Split + PUD +  Duplex +  
                       factor(LUC) + Parking + HOA + remod + Elevator, 
                    data = work, 
                    listw = invd.weights,
@@ -95,7 +96,7 @@ load("./Build/Output/CoreData.RData")
   
   mod5 <- lagsarlm(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFull + BathsHalf + 
                       Stories + SqftTotal + Age + Age2 + Basement + factor(cond) +
-                      Split + PUD + LowRise + HighRise + Townhouse + Condotel + Duplex + WalkUP + 
+                      Split + PUD + Duplex +
                       factor(LUC) + Parking + HOA + remod + Elevator +
                       beach + park + hospital + airport  + elem_sch + 
                       mid_sch + high_sch, 
@@ -110,7 +111,7 @@ load("./Build/Output/CoreData.RData")
   
   mod6 <- lagsarlm(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFull + BathsHalf + 
                       Stories + SqftTotal + Age + Age2 + Basement + factor(cond) +
-                      Split + PUD + LowRise + HighRise + Townhouse + Condotel + Duplex + WalkUP + 
+                      Split + PUD + Duplex + 
                       factor(LUC) + Parking + HOA + remod + Elevator +
                       beach + park + hospital + airport  + elem_sch + 
                       mid_sch + high_sch +  
@@ -124,10 +125,13 @@ load("./Build/Output/CoreData.RData")
                  trs=trMatc)
   
 
-  save(mod1, mod2, mod3, mod4, mod5, mod6, trMatc, file="./Analysis/Output/Spat1.RData")
+  save(mod1, mod2, mod3, mod4, mod5, mod6, trMatc, file="./Analysis/Output/Spat1sf.RData")
+  stargazer(mod1, mod2, mod3, mod4, mod5, mod6, type="text", out="./Analysis/OUtput/spat1sf.txt")
+  
  
 #Create Weights for Distance Based W (First Sale)
-  work<-main.s2
+  work<-main.s2 %>%
+    filter(PropertyType == "Single Family")
   
   coords <- cbind(work$lon, work$lat)
   
@@ -189,7 +193,7 @@ load("./Build/Output/CoreData.RData")
   
   mod4 <- lagsarlm(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFull + BathsHalf + 
                      Stories + SqftTotal + Age + Age2 + Basement + factor(cond) +
-                     Split + PUD + LowRise + HighRise + Townhouse + Condotel + Duplex + WalkUP + 
+                     Split + PUD + Duplex + 
                      factor(LUC) + Parking + HOA + remod + Elevator, 
                  data = work, 
                  listw = invd.weights,
@@ -201,7 +205,7 @@ load("./Build/Output/CoreData.RData")
   
   mod5 <- lagsarlm(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFull + BathsHalf + 
                      Stories + SqftTotal + Age + Age2 + Basement + factor(cond) +
-                     Split + PUD + LowRise + HighRise + Townhouse + Condotel + Duplex + WalkUP + 
+                     Split + PUD + Duplex + 
                      factor(LUC) + Parking + HOA + remod + Elevator +
                      beach + park + hospital + airport  + elem_sch + 
                      mid_sch + high_sch, 
@@ -216,7 +220,7 @@ load("./Build/Output/CoreData.RData")
   
   mod6 <- lagsarlm(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFull + BathsHalf + 
                      Stories + SqftTotal + Age + Age2 + Basement + factor(cond) +
-                     Split + PUD + LowRise + HighRise + Townhouse + Condotel + Duplex + WalkUP + 
+                     Split + PUD + Duplex + 
                      factor(LUC) + Parking + HOA + remod + Elevator +
                      beach + park + hospital + airport  + elem_sch + 
                      mid_sch + high_sch +  
@@ -229,6 +233,6 @@ load("./Build/Output/CoreData.RData")
                     trs=trMatc)
   
   
-  save(mod1, mod2, mod3, mod4, mod5, mod6, trMatc, file="./Analysis/Output/Spat2.RData")
+  save(mod1, mod2, mod3, mod4, mod5, mod6, trMatc, file="./Analysis/Output/Spat2sf.RData")
 
-
+stargazer(mod1, mod2, mod3, mod4, mod5, mod6, type="text", out="./Analysis/OUtput/spat2sf.txt")
