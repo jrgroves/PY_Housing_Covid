@@ -54,7 +54,6 @@ library(readxl)
            LUC = relevel(factor(LUC), ref="Residential"),
            cond = factor(cond, levels=c("Average","Excellent","Above Average","Fair")),
            fld_zone = relevel(factor(fld_zone), ref = "AE"),
-           ProperyType = gsub("/","_",PropertyType),
            remod = case_when(YearRemodeled == 0 ~ 0,  #Dummy for remodel
                              TRUE ~ 1),
            Covid = Covid + 0,
@@ -94,19 +93,20 @@ library(readxl)
     rename("ListDate" = "ListingContractDate") %>%
     select(-c(AssociationFee, ElevatorsNumberOf, ParkingTotal, Topography, PropertyFrontage,SQFTRoofedOther,
               UnitFeatures)) %>%
-    filter(!is.na(fld_zone)) #Removes two observations with no flood zone
+    filter(!is.na(fld_zone), #Removes two observations with no flood zone
+           TMK != 123001127) #Removes 171 observations causing a spike in 11/2016 for sale price. Likely coded wrong and all in same building.
   
   
 #Create Single Observations set for Spatial Weights for Spatial Regressions
   main.s <- main %>%
-    filter(CloseDate == max(CloseDate), .by=TMK) %>%
-    filter(lnClose == max(lnClose), .by=TMK) %>%
-    distinct(TMK, .keep_all = TRUE)  
+    filter(CloseDate == max(CloseDate), .by=ParcelNumber) %>%
+    filter(lnClose == max(lnClose), .by=ParcelNumber) %>%
+    distinct(ParcelNumber, .keep_all = TRUE)  
   
   main.s2 <- main %>%
-    filter(CloseDate == min(CloseDate), .by=TMK) %>%
-    filter(lnClose == max(lnClose), .by=TMK) %>%
-    distinct(TMK, .keep_all = TRUE)  
+    filter(CloseDate == min(CloseDate), .by=ParcelNumber) %>%
+    filter(lnClose == max(lnClose), .by=ParcelNumber) %>%
+    distinct(ParcelNumber, .keep_all = TRUE)  
            
  save(main,main.s, main.s2, file="./Build/Output/CoreData.RData")
 

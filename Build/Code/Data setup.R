@@ -187,7 +187,8 @@ library(openxlsx)
       mutate(livSQFT = SQFTRoofedLiving) %>%
       filter(livSQFT > 99,
              Age >= 0) %>%
-      select(-SQFTRoofedLiving)
+      select(-SQFTRoofedLiving) %>%
+      mutate(PropertyType = gsub("/", "_", PropertyType))
     
     #Add Sales Frequency
     
