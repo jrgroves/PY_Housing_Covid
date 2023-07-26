@@ -83,7 +83,7 @@ load("./Build/Output/CoreData.RData")
   
   mod4 <- lagsarlm(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFull + BathsHalf + 
                       Stories + SqftTotal + Age + Age2 + Basement + factor(cond) +
-                     Split + PUD + LowRise + HighRise + Townhouse + Condotel +  WalkUP + 
+                     Split + PUD + LowRise + HighRise + Townhouse + Condotel +  WalkUP + SingleFam +
                       factor(LUC) + Parking + HOA + remod + Elevator, 
                    data = work, 
                    listw = invd.weights,
@@ -96,7 +96,7 @@ load("./Build/Output/CoreData.RData")
   
   mod5 <- lagsarlm(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFull + BathsHalf + 
                       Stories + SqftTotal + Age + Age2 + Basement + factor(cond) +
-                     Split + PUD + LowRise + HighRise + Townhouse + Condotel +  WalkUP + 
+                     Split + PUD + LowRise + HighRise + Townhouse + Condotel +  WalkUP + SingleFam +
                       factor(LUC) + Parking + HOA + remod + Elevator +
                       beach + park + hospital + airport  + elem_sch + 
                       mid_sch + high_sch, 
@@ -111,7 +111,7 @@ load("./Build/Output/CoreData.RData")
   
   mod6 <- lagsarlm(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFull + BathsHalf + 
                       Stories + SqftTotal + Age + Age2 + Basement + factor(cond) +
-                     Split + PUD + LowRise + HighRise + Townhouse + Condotel +  WalkUP + 
+                     Split + PUD + LowRise + HighRise + Townhouse + Condotel +  WalkUP + SingleFam +
                       factor(LUC) + Parking + HOA + remod + Elevator +
                       beach + park + hospital + airport  + elem_sch + 
                       mid_sch + high_sch +  
@@ -192,7 +192,7 @@ load("./Build/Output/CoreData.RData")
   
   mod4 <- lagsarlm(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFull + BathsHalf + 
                      Stories + SqftTotal + Age + Age2 + Basement + factor(cond) +
-                     Split + PUD + LowRise + HighRise + Townhouse + Condotel +  WalkUP + 
+                     Split + PUD + LowRise + HighRise + Townhouse + Condotel +  WalkUP + SingleFam +
                      factor(LUC) + Parking + HOA + remod + Elevator, 
                  data = work, 
                  listw = invd.weights,
@@ -204,7 +204,7 @@ load("./Build/Output/CoreData.RData")
   
   mod5 <- lagsarlm(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFull + BathsHalf + 
                      Stories + SqftTotal + Age + Age2 + Basement + factor(cond) +
-                     Split + PUD + LowRise + HighRise + Townhouse + Condotel +  WalkUP + 
+                     Split + PUD + LowRise + HighRise + Townhouse + Condotel +  WalkUP + SingleFam +
                      factor(LUC) + Parking + HOA + remod + Elevator +
                      beach + park + hospital + airport  + elem_sch + 
                      mid_sch + high_sch, 
@@ -219,7 +219,7 @@ load("./Build/Output/CoreData.RData")
   
   mod6 <- lagsarlm(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFull + BathsHalf + 
                      Stories + SqftTotal + Age + Age2 + Basement + factor(cond) +
-                     Split + PUD + LowRise + HighRise + Townhouse + Condotel +  WalkUP + 
+                     Split + PUD + LowRise + HighRise + Townhouse + Condotel +  WalkUP + SingleFam +
                      factor(LUC) + Parking + HOA + remod + Elevator +
                      beach + park + hospital + airport  + elem_sch + 
                      mid_sch + high_sch +  

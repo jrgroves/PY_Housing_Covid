@@ -29,12 +29,12 @@ mod3 <- lm(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFull + Bat
 
 mod4 <- lm(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFull + BathsHalf + 
              Stories + SqftTotal + Age + Age2 + Basement + factor(cond) +
-             Split + PUD + LowRise + HighRise + Townhouse + Condotel +  WalkUP + 
+             Split + PUD + LowRise + HighRise + Townhouse + Condotel +  WalkUP + SingleFam +
              factor(LUC) + Parking + HOA + remod + Elevator, data = main)
 
 mod5 <- lm(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFull + BathsHalf + 
              Stories + SqftTotal + Age + Age2 + Basement + factor(cond) +
-             Split + PUD + LowRise + HighRise + Townhouse + Condotel +  WalkUP + 
+             Split + PUD + LowRise + HighRise + Townhouse + Condotel +  WalkUP + SingleFam +
              factor(LUC) + Parking + HOA + remod + Elevator +
              beach + park + hospital + airport  + elem_sch + 
              mid_sch + high_sch + lat + lon, 
@@ -42,22 +42,11 @@ mod5 <- lm(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFull + Bat
 
 mod6 <- lm(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFull + BathsHalf + 
              Stories + SqftTotal + Age + Age2 + Basement + factor(cond) +
-             Split + PUD + LowRise + HighRise + Townhouse + Condotel +  WalkUP + 
+             Split + PUD + LowRise + HighRise + Townhouse + Condotel +  WalkUP + SingleFam +
              factor(LUC) + Parking + HOA + remod + Elevator +
              beach + park + hospital + airport  + elem_sch + 
              mid_sch + high_sch + lat + lon + 
              per_black + per_asian + per_hawaian + per_owner + per_occupied, 
-           data=main)
-
-mod7a <- lm(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFull + BathsHalf + 
-             Stories + SqftTotal + Age + Age2 + Basement + factor(cond) +
-             Split + PUD + LowRise + HighRise + Townhouse + Condotel +  WalkUP + 
-             factor(LUC) + Parking + HOA + remod + Elevator +
-             beach  + park + hospital + airport  + elem_sch + 
-             mid_sch + high_sch + lat + lon + 
-             per_black + per_asian + per_hawaian + per_owner + per_occupied +
-             Split*Covid + PUD*Covid + LowRise*Covid + HighRise*Covid + Townhouse*Covid + 
-             Condotel*Covid + WalkUP*Covid + SingleFam*Covid, 
            data=main)
 
 stargazer(mod1, mod2, mod3, mod4, mod5, mod6, type = "text", 
@@ -81,14 +70,14 @@ mod3 <- lm_robust(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFul
 
 mod4 <- lm_robust(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFull + BathsHalf + 
                     Stories + SqftTotal + Age + Age2 + Basement + factor(cond) +
-                    Split + PUD + LowRise + HighRise + Townhouse + Condotel +  WalkUP + 
+                    Split + PUD + LowRise + HighRise + Townhouse + Condotel +  WalkUP + SingleFam +
                     factor(LUC) + Parking + HOA + remod + Elevator, 
                   cluster= PostalCode,
                   data=main)
 
 mod5 <- lm_robust(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFull + BathsHalf + 
                     Stories + SqftTotal + Age + Age2 + Basement + factor(cond) +
-                    Split + PUD + LowRise + HighRise + Townhouse + Condotel +  WalkUP + 
+                    Split + PUD + LowRise + HighRise + Townhouse + Condotel +  WalkUP + SingleFam +
                     factor(LUC) + Parking + HOA + remod + Elevator +
                     beach + park + hospital + airport  + elem_sch + 
                     mid_sch + high_sch + lat + lon, 
@@ -97,24 +86,13 @@ mod5 <- lm_robust(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFul
 
 mod6 <- lm_robust(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFull + BathsHalf + 
                     Stories + SqftTotal + Age + Age2 + Basement + factor(cond) +
-                    Split + PUD + LowRise + HighRise + Townhouse + Condotel +  WalkUP + 
+                    Split + PUD + LowRise + HighRise + Townhouse + Condotel +  WalkUP + SingleFam +
                     factor(LUC) + Parking + HOA + remod + Elevator +
                     beach + park + hospital + airport  + elem_sch + 
                     mid_sch + high_sch + lat + lon + 
                     per_black + per_asian + per_hawaian + per_owner + per_occupied, 
                   cluster= PostalCode,
                   data=main)
-
-mod7b <- lm(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFull + BathsHalf + 
-             Stories + SqftTotal + Age + Age2 + Basement + factor(cond) +
-             Split + PUD + LowRise + HighRise + Townhouse + Condotel +  WalkUP + 
-             factor(LUC) + Parking + HOA + remod + Elevator +
-             beach  + park + hospital + airport  + elem_sch + 
-             mid_sch + high_sch + lat + lon + 
-             per_black + per_asian + per_hawaian + per_owner + per_occupied +
-             Split*Covid + PUD*Covid + LowRise*Covid + HighRise*Covid + Townhouse*Covid + 
-             Condotel*Covid + WalkUP*Covid + SingleFam*Covid, 
-           data=main)
 
 models <- c("mod6", "mod5", "mod4", "mod3", "mod2", "mod1")
 
@@ -154,14 +132,14 @@ mod3 <- lm_robust(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFul
 
 mod4 <- lm_robust(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFull + BathsHalf + 
                     Stories + SqftTotal + Age + Age2 + Basement + factor(cond) +
-                    Split + PUD + LowRise + HighRise + Townhouse + Condotel +  WalkUP + 
+                    Split + PUD + LowRise + HighRise + Townhouse + Condotel +  WalkUP + SingleFam +
                     factor(LUC) + Parking + HOA + remod + Elevator, 
                   cluster= PostalCode,
                   data=main)
 
 mod5 <- lm_robust(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFull + BathsHalf + 
                     Stories + SqftTotal + Age + Age2 + Basement + factor(cond) +
-                    Split + PUD + LowRise + HighRise + Townhouse + Condotel +  WalkUP + 
+                    Split + PUD + LowRise + HighRise + Townhouse + Condotel +  WalkUP + SingleFam +
                     factor(LUC) + Parking + HOA + remod + Elevator +
                     beach + park + hospital + airport  + elem_sch + 
                     mid_sch + high_sch + lat + lon, 
@@ -170,24 +148,13 @@ mod5 <- lm_robust(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFul
 
 mod6 <- lm_robust(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFull + BathsHalf + 
                     Stories + SqftTotal + Age + Age2 + Basement + factor(cond) +
-                    Split + PUD + LowRise + HighRise + Townhouse + Condotel +  WalkUP + 
+                    Split + PUD + LowRise + HighRise + Townhouse + Condotel +  WalkUP + SingleFam +
                     factor(LUC) + Parking + HOA + remod + Elevator +
                     beach + park + hospital + airport  + elem_sch + 
                     mid_sch + high_sch + lat + lon + 
                     per_black + per_asian + per_hawaian + per_owner + per_occupied, 
                   cluster= PostalCode,
                   data=main)
-
-mod7c <- lm(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFull + BathsHalf + 
-             Stories + SqftTotal + Age + Age2 + Basement + factor(cond) +
-             Split + PUD + LowRise + HighRise + Townhouse + Condotel +  WalkUP + 
-             factor(LUC) + Parking + HOA + remod + Elevator +
-             beach  + park + hospital + airport  + elem_sch + 
-             mid_sch + high_sch + lat + lon + 
-             per_black + per_asian + per_hawaian + per_owner + per_occupied +
-             Split*Covid + PUD*Covid + LowRise*Covid + HighRise*Covid + Townhouse*Covid + 
-             Condotel*Covid + WalkUP*Covid + SingleFam*Covid, 
-           data=main)
 
 save(mod1, mod2, mod3, mod4, mod5, mod6, file="./Analysis/Output/Reg2ct_Robust.RData")
 
@@ -219,14 +186,14 @@ mod3 <- lm_robust(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFul
 
 mod4 <- lm_robust(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFull + BathsHalf + 
                     Stories + SqftTotal + Age + Age2 + Basement + factor(cond) +
-                    Split + PUD + LowRise + HighRise + Townhouse + Condotel +  WalkUP + 
+                    Split + PUD + LowRise + HighRise + Townhouse + Condotel +  WalkUP + SingleFam +
                     factor(LUC) + Parking + HOA + remod + Elevator, 
                   cluster= PostalCode,
                   data=main)
 
 mod5 <- lm_robust(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFull + BathsHalf + 
                     Stories + SqftTotal + Age + Age2 + Basement + factor(cond) +
-                    Split + PUD + LowRise + HighRise + Townhouse + Condotel +  WalkUP + 
+                    Split + PUD + LowRise + HighRise + Townhouse + Condotel +  WalkUP + SingleFam +
                     factor(LUC) + Parking + HOA + remod + Elevator +
                     beach + park + hospital + airport  + elem_sch + 
                     mid_sch + high_sch + lat + lon, 
@@ -235,25 +202,13 @@ mod5 <- lm_robust(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFul
 
 mod6 <- lm_robust(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFull + BathsHalf + 
                     Stories + SqftTotal + Age + Age2 + Basement + factor(cond) +
-                    Split + PUD + LowRise + HighRise + Townhouse + Condotel +  WalkUP + 
+                    Split + PUD + LowRise + HighRise + Townhouse + Condotel +  WalkUP + SingleFam +
                     factor(LUC) + Parking + HOA + remod + Elevator +
                     beach + park + hospital + airport  + elem_sch + 
                     mid_sch + high_sch + lat + lon + 
                     per_black + per_asian + per_hawaian + per_owner + per_occupied, 
                   cluster= PostalCode,
                   data=main)
-
-mod7d <- lm(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFull + BathsHalf + 
-              Stories + SqftTotal + Age + Age2 + Basement + factor(cond) +
-              Split + PUD + LowRise + HighRise + Townhouse + Condotel +  WalkUP + 
-              factor(LUC) + Parking + HOA + remod + Elevator +
-              beach  + park + hospital + airport  + elem_sch + 
-              mid_sch + high_sch + lat + lon + 
-              per_black + per_asian + per_hawaian + per_owner + per_occupied +
-              Split*Covid + PUD*Covid + LowRise*Covid + HighRise*Covid + Townhouse*Covid + 
-              Condotel*Covid + WalkUP*Covid + SingleFam*Covid, 
-            data=main)
-
 
 save(mod1, mod2, mod3, mod4, mod5, mod6, file="./Analysis/Output/Reg2ct2_Robust.RData")
 
