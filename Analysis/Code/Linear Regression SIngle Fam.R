@@ -9,6 +9,18 @@ library(estimatr)
 library(openxlsx)
 library(stargazer)
 
+#Functions
+
+models <- c("mod6", "mod5", "mod4", "mod3", "mod2", "mod1")
+
+rob.out<-function(x){
+  temp <- x %>% 
+    tidy() %>%
+    select(term, estimate, std.error,statistic, p.value)
+  return(temp)
+}
+
+
 #Read in Cleaned Data
 
 load("./Build/Output/CoreData.RData")
@@ -93,15 +105,6 @@ mod6 <- lm_robust(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFul
                   cluster= PostalCode,
                   data=main)
 
-
-models <- c("mod6", "mod5", "mod4", "mod3", "mod2", "mod1")
-
-rob.out<-function(x){
-  temp <- x %>% 
-    tidy() %>%
-    select(term, estimate, std.error,statistic, p.value)
-  return(temp)
-}
 
 j<-1
 for(i in models){
@@ -211,7 +214,7 @@ mod6 <- lm_robust(ln.r.close ~ Covid + DOM + factor(year) + BedsTotal + BathsFul
                   cluster= PostalCode,
                   data=main)
 
-save(mod1, mod2, mod3, mod4, mod5, mod6, file="./Analysis/Output/Reg2sf_Robust.RData")
+save(mod1, mod2, mod3, mod4, mod5, mod6, file="./Analysis/Output/Reg2sfs_Robust.RData")
 
 j<-1
 for(i in models){

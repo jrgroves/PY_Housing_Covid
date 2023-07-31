@@ -14,8 +14,11 @@ library(readxl)
   load("./Build/Output/MapData.RData")
   
     map.data2 <- map.data %>%
-          sf::st_drop_geometry()
-
+      sf::st_drop_geometry() 
+    
+    map.data2 <- map.data2 %>%
+      distinct()
+    
 #Load Covid Data from https://public.tableau.com/app/profile/docd.epi/viz/HawaiiCOVID-19WorkbooksandData/EpidemicCurves
 
   raw.data<-read_excel("./Build/Input/Hawaii_Covid.xlsx")
@@ -30,8 +33,10 @@ library(readxl)
   core<-core %>%
     mutate(Date = CloseDate) %>%
     left_join(., covid, by="Date")  %>%
-    left_join(., map.data2, by="TMK") %>%
-    filter(!is.na(lat))  #removes about 111 units not in map data 
+    left_join(., map.data2, by=c("ParcelNumber", "year"), relationship = "many-to-one") %>%
+    filter(!is.na(lat)) %>% #removes about 111 units not in map data 
+    select(-TMK.y) %>%
+    rename("TMK" = "TMK.x")
   
 #Remove data not used and clean usable data for analysis
   main <- core %>%

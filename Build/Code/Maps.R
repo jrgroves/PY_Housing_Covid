@@ -14,34 +14,21 @@ library(sf)
 
   load("./Build/Output/core.RData")
   
+  tmk.year <- core %>%
+    select(ParcelNumber, TMK, year) %>%
+    mutate(year.c = case_when(year==2022 ~ 2021,
+                              year==2023 ~ 2021,
+                              TRUE ~ year))
+  
   tmk <- core %>%
     select(TMK) %>%
-    distinct() %>%
-    mutate(cdata = 1)
+    distinct()
   
   rm(core)
 
 #Read in GIS maps
   map<-st_read(dsn="./Build/Input/Maps/oahtmk.shp")
  
-#Download ACS data and process maps
-  census <- get_acs(geography = "block group",
-                    variables = c(population = "B01001_001",
-                                  white = "B02001_002",
-                                  black = "B02001_003",
-                                  asian = "B02001_005",
-                                  hawaian = "B02001_006",
-                                  households = "B25002_001",
-                                  occupied = "B25002_002",
-                                  vacant = "B25002_003",
-                                  owner = "B25003_002",
-                                  renter = "B25003_003"),
-                    year = 2021,
-                    state = 15,
-                    geometry = TRUE)
-  
-  census<-st_transform(census, crs=st_crs(map))
-
 #Limit Parcel map and create centroid map
 
   map <- map %>%
@@ -50,6 +37,9 @@ library(sf)
   
   m.data <- map %>%
     filter(TMK %in% tmk$TMK) %>%
+    group_by(TMK) %>%
+    summarise(geometry = sf::st_union(geometry)) %>%
+    ungroup() %>%
     mutate(par_area = st_area(.),
            lon = map_dbl(geometry, ~st_centroid(.x)[[1]]),
            lat = map_dbl(geometry, ~st_centroid(.x)[[2]]))
@@ -257,54 +247,80 @@ library(sf)
     m.data<-m.data %>%
       left_join(., map2, by="TMK")
     
-#Create maps for visualizations and to obtain Census link
+#Pull Down Census Data from ACS 5 year files for each year
+ for(y in seq(2016, 2021, 1)){
+       
+  #Download ACS data and process maps
+    census <- get_acs(geography = "block group",
+                      variables = c(population = "B01001_001",
+                                    white = "B02001_002",
+                                    black = "B02001_003",
+                                    asian = "B02001_005",
+                                    hawaian = "B02001_006",
+                                    households = "B25002_001",
+                                    occupied = "B25002_002",
+                                    vacant = "B25002_003",
+                                    owner = "B25003_002",
+                                    renter = "B25003_003"),
+                      year = y,
+                      state = 15,
+                      geometry = TRUE)
+    
+    census<-st_transform(census, crs=st_crs(map))
+    
+  #Create core data set
+    cen.data <- census %>%
+      st_drop_geometry() %>%
+      select(GEOID, variable, estimate) %>%
+      pivot_wider(names_from = "variable", values_from = "estimate", id_cols = "GEOID") %>%
+      filter(population != 0,
+             households != 0) %>%
+      mutate(per_white = white/population,
+             per_black = black/population,
+             per_asian = asian/population,
+             per_hawaian = hawaian/population,
+             per_occupied = occupied/households,
+             per_vacant = vacant/households,
+             per_owner = owner/occupied,
+             per_renter = renter/occupied) %>%
+      distinct()
+    
 
-cen.map <- census %>%
-  select(GEOID, geometry) %>%
-  distinct() %>%
-  st_transform(., crs=st_crs(map)) %>%
-  st_intersection(., m.data)%>%
-  select(TMK, GEOID, par_area) %>%
-  distinct()
-
-cen.map <- cen.map %>%
-  mutate(in_area = st_area(cen.map),
-         weight = in_area / par_area)
+  cen.map <- census %>%
+    select(GEOID, geometry) %>%
+    distinct() %>%
+    st_transform(., crs=st_crs(map)) %>%
+    st_intersection(., m.data)%>%
+    select(TMK, GEOID, par_area) %>%
+    distinct()
   
-#Create core data set
-cen.data <- census %>%
-  st_drop_geometry() %>%
-  select(GEOID, variable, estimate) %>%
-  pivot_wider(names_from = "variable", values_from = "estimate", id_cols = "GEOID") %>%
-  filter(population != 0,
-         households != 0) %>%
-  mutate(per_white = white/population,
-         per_black = black/population,
-         per_asian = asian/population,
-         per_hawaian = hawaian/population,
-         per_occupied = occupied/households,
-         per_vacant = vacant/households,
-         per_owner = owner/occupied,
-         per_renter = renter/occupied) %>%
-  distinct()
-
-cen.data2<-cen.map %>%
-  left_join(., cen.data, by="GEOID") %>%
-  filter(!is.na(per_white)) %>%
-  select(-c(GEOID, par_area, in_area)) %>%
-  mutate(weight = as.numeric(weight)) %>%
-  mutate(across(population:per_renter, function(x) x*weight)) %>%
-  st_drop_geometry() %>%
-  aggregate(. ~ TMK, ., sum) %>%
-  filter(weight <1.1) %>%
-  distinct() %>%
-  select(-c(white, black, asian, hawaian, occupied, households, vacant, owner, renter))
-
+  cen.map <- cen.map %>%
+    mutate(in_area = st_area(cen.map),
+           weight = in_area / par_area)
+    
+  cen.data2<-cen.map %>%
+    left_join(., cen.data, by="GEOID") %>%
+    filter(!is.na(per_white)) %>%
+    select(-c(GEOID, par_area, in_area)) %>%
+    mutate(weight = as.numeric(weight)) %>%
+    mutate(across(population:per_renter, function(x) x*weight)) %>%
+    st_drop_geometry() %>%
+    aggregate(. ~ TMK, ., sum) %>%
+    filter(weight <1.1) %>%
+    distinct() %>%
+    select(-c(white, black, asian, hawaian, occupied, households, vacant, owner, renter)) %>%
+    mutate(year.c = y)
+  
+  ifelse(y==2016,CEN <- cen.data2, CEN <- rbind(CEN, cen.data2))
+ }
+    
 #Merge Census Data and other Map Data
-
+ 
   map.data <- m.data %>%
-    select(-c(TAXPIN, REC_AREA_S, TYPE, STREET_PAR, GISAcres)) %>%
-    left_join(., cen.data2, by="TMK") %>%
-    filter(!is.na(per_white))
+    left_join(., tmk.year, by="TMK", relationship = "one-to-many")  %>%
+    left_join(., CEN, by=c("TMK", "year.c")) %>%
+    filter(!is.na(per_white),
+           population > 10) %>%
+    select(-year.c)
 
 save(map.data, file="./Build/Output/MapData.RData")

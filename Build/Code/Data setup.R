@@ -22,7 +22,20 @@ library(openxlsx)
     cpi<-read.xlsx("./Build/Input/cpi.xlsx")
       cpi <- cpi %>%
         select(Series2, CPI)
-
+      
+     #List of ParcelNumbers where Condo / Single Family is changed between sales fixed using property lookup 
+     propid1<-c('1-2-2-004-003-0009','1-3-1-036-004-0004','1-3-5-024-009-0077','1-3-9-008-036-0039',
+               '1-4-2-101-016-0009','1-8-7-001-012-0005',
+               '1-8-7-010-022-0028','1-8-7-010-022-0090','1-8-7-010-022-0091','1-9-1-010-069-0005',
+               '1-9-1-010-078-0009','1-9-1-010-116-0005','1-9-1-012-040-0020','1-9-1-102-025-0005',
+               '1-9-1-102-034-0007','1-9-1-132-001-0015','1-9-1-132-010-0040','1-9-1-132-010-0090',
+               '1-9-1-149-034-0002','1-9-1-160-051-0025','1-9-1-164-028-0015','1-9-2-019-044-0043',
+               '1-9-2-019-060-0001','1-9-2-019-060-0016','1-9-2-019-071-0003','1-9-2-019-071-0010',
+               '1-9-4-007-012-0152','1-9-4-035-083-0002','1-9-5-002-004-0006',
+               '1-9-7-049-019-0001')
+     propid2 <-c('1-9-5-029-005-0000','1-9-4-070-021-0000','1-4-6-033-037-0000',
+                 '1-4-1-032-114-0000','1-8-7-036-034-0000')
+               
 #Prepare Data
            
     data <- raw.data %>%
@@ -188,7 +201,10 @@ library(openxlsx)
       filter(livSQFT > 99,
              Age >= 0) %>%
       select(-SQFTRoofedLiving) %>%
-      mutate(PropertyType = gsub("/", "_", PropertyType))
+      mutate(PropertyType = gsub("/", "_", PropertyType),
+             PropertyType = case_when(ParcelNumber %in% propid1 ~ "Condo_Townhouse",
+                                      ParcelNumber %in% propid2 ~ "Single Family",
+                                      TRUE ~ PropertyType))
     
     #Add Sales Frequency
     
