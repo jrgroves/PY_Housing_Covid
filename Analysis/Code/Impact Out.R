@@ -1,5 +1,7 @@
 
-impout<-function(x){
+impout<-function(y,trM){
+  x<-summary(impacts(y, tr=trM, R=1000), zstats=TRUE)
+  
   a<-data.frame(x$res$direct)
     names(a) <- "Direct"
     a$variable<-row.names(a)
