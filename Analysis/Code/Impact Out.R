@@ -1,6 +1,6 @@
 
 impout<-function(y,trM){
-  x<-summary(impacts(y, tr=trM, R=1000), zstats=TRUE)
+  x<-summary(impacts(y, tr=trM, R=5000), zstats=TRUE)
   
   a<-data.frame(x$res$direct)
     names(a) <- "Direct"
