@@ -1,28 +1,45 @@
-#Analysis and Regressions for Hawaii Housing Data and Covid
+#Creates a Nearest Neighbor data set using only those units sold PRIOR to current unit
 #Jeremy R. Groves
-#June 22, 2023
-#NOTES:
-#Only use Elementary Schools because there is too much overlap with middle and High Schools causing NAs
+#January 31, 2024
+
 
 rm(list=ls())
 
 library(tidyverse)
+library(dbscan)
 
 #Read in Cleaned Data
 
 load("./Build/Output/CoreData.RData")
 
-temp <- main %>%
-  select(TMK, TMK.condo, ParcelNumber, PropertyType, lat, lon) %>%
-  distinct(., ParcelNumber, .keep_all = TRUE) %>%
-  mutate(unit.id = paste0("UN", seq_len(n())))
-
-temp2 <- main %>%
-  select(TMK, TMK.condo, ParcelNumber, PropertyType, lat, lon) %>%
-  distinct(., TMK, .keep_all = TRUE) %>%
-  mutate(build.id = paste0("BLD", seq_len(n()))) %>%
-  select(ParcelNumber, build.id)
-
 core <- main %>%
-  full_join(., temp, by="ParcelNumber") %>%
-  full_join(., temp2, by="ParcelNumber")
+  select(ParcelNumber, lat, lon, CloseDate, year) %>%
+  arrange(CloseDate) %>%
+  mutate(ID = 1:n())
+
+seed <- 6882 #starts data with first sale of 2017
+dist <- data.frame()
+ID <- data.frame()
+
+for(i in seq(1,43513)){
+  #Limit Data to only those at or before current
+    test <- core %>%
+      filter(ID <= seed)
+  
+  #apply the nearest neighbor function
+    temp <- kNN(test[,2:3], k=50)
+    
+  #Create Distance Matrix  
+    temp2 <- as.data.frame(t(temp$dist[seed,]))
+      temp2 <- cbind(temp2, seed)
+    dist <- rbind(dist, temp2)
+    
+  #Create ID matrix
+    temp2 <- as.data.frame(t(temp$id[seed,]))
+      temp2 <- cbind(temp2, seed)
+    ID <- rbind(ID, temp2)
+    seed<-seed+1
+    print(i)
+}
+
+save(dist, ID, file="./Build/Output/neighbors.RData")
