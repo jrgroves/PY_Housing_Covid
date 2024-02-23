@@ -1,98 +1,94 @@
-#Creates a Nearest Neighbor data set using only those units sold PRIOR to current unit
-#Jeremy R. Groves
-#January 31, 2024
+#Analizes the model based on Pace, et. al. (98) for Single Family Housing
+  #Jeremy R. Groves
+  #January 31, 2024
+  #Revised February 23, 2024
 
 
 rm(list=ls())
 
 library(tidyverse)
-library(dbscan)
+library(Matrix)
 
-#Read in Cleaned Data
+#Read in Cleaned Data, weight matrix, and filter for single family only
 
-load("./Build/Output/CoreData.RData")
-
-core <- main %>%
-  select(ParcelNumber, lat, lon, CloseDate, year) %>%
-  arrange(CloseDate) %>%
-  mutate(ID = 1:n())
-
-temp<-core %>%
-  filter(year==2016)
-
-seed <- nrow(temp)+1 #starts data with first sale of 2017
-  rm(temp)
-
-dist <- lapply(1:seed-1, function(i) as.integer(i+1))  
-ID <- lapply(1:seed-1, function(i) as.integer(i+1))
-
-for(i in seq(1,nrow(core)-seed)){ #seq(1,nrow(core)-seed)){
-  #Limit Data to only those at or before current
-  test <- core %>%
-    filter(ID <= seed)
+  load("./Build/Output/CoreData.RData")
+  load("./Build/Output/Space.RData")
+  load("./Build/Output/Time.RData")
   
-  #apply the nearest neighbor function
-  temp <- kNN(test[,2:3], k=50)
-  
-  #Create Distance Matrix  
-  temp2 <- list((temp$dist[seed,]))
-    names(temp2) <- seed
-  dist <- append(dist, temp2)
-  
-  #Create ID matrix
-  temp2 <- list((temp$id[seed,]))
-    names(temp2) <- seed
-  ID <- append(ID, temp2)
-
-  seed<-seed+1
-  print(i)
-}
-
-save(dist, ID, file="./Build/Output/neighbors.RData")
-
-#Create for the Single Family Housing Units only
-
-load("./Build/Output/CoreData.RData")
-
   rm(main.s, main.s2)
-
-core <- main %>%
-  filter(PropertyType == "Single Family") %>%
-  select(ParcelNumber, lat, lon, CloseDate, year) %>%
-  arrange(CloseDate) %>%
-  mutate(ID = 1:n())
-
-
-  temp<-core %>%
-    filter(year==2016)
   
-seed <- nrow(temp)+1 #starts data with first sale of 2017
+  core <- main %>%
+    filter(PropertyType == "Single Family") %>%
+    arrange(CloseDate) %>%
+    mutate(ID = 1:n()) 
+  rm(main)
+  
+#Create Main Spatial Weight Matrix
+  
+  neighbors <- 10
+  w <- 1/neighbors
+  
+  S <- s1+s2+s3+s4+s5+s6+s7+s8+s9+s10
+  S <- w * S  
+  rm(list = grep("^s", ls(), value = TRUE, invert = FALSE))
+  
+  
+#Create Main Temporal Weight Matrix
+ 
+  temp <- list()
+  for(i in seq(1,59)){
+    temp<-append(temp,  eval(parse(text=paste0("D", i))))
+  }
+ 
+  TT <- Reduce('+', temp)
   rm(temp)
+  rm(list = grep("^D", ls(), value = TRUE, invert = FALSE))
 
-dist <- lapply(1:seed-1, function(i) as.integer(i+1))  
-ID <- lapply(1:seed-1, function(i) as.integer(i+1))
+  #
+  
+#Create Variables with spatial-temporal lags
+  
+  eXes <- core %>%
+    select(BedsTotal, BathsTotal, Covid)
+  
+  X <- data.matrix(eXes, rownames.force = TRUE)
+  Y <- data.matrix(core$lnClose, rownames.force = FALSE)
+    colnames(Y) <- "lnClose"
+  
+  TX <- TT %*% X
+  SX <- S %*% X
+  STX <- S %*% TT %*% X
+  TSX <- TT %*% S %*% X
+  
+  TY <- TT %*% Y
+  SY <- S %*% Y
+  STY <- S %*% TT %*% Y
+  TSY <- TT %*% S %*% Y
 
-for(i in seq(1,nrow(core)-seed)){
-  #Limit Data to only those at or before current
-  test <- core %>%
-    filter(ID <= seed)
+  sX <- as.data.frame(as.matrix(SX))
+    names(sX) <- paste("s", names(sX), sep="-")
+  tX <- as.data.frame(as.matrix(TX))
+    names(tX) <- paste("t", names(tX), sep="-")
+  stX <- as.data.frame(as.matrix(STX))
+    names(stX) <- paste("st", names(stX), sep="-")
+  tsX <- as.data.frame(as.matrix(TSX))
+    names(tsX) <- paste("ts", names(tsX), sep="-")
+    
+  sY <- as.data.frame(as.matrix(SY))
+    names(sY) <- paste("s", names(sY), sep="-")
+  tY <- as.data.frame(as.matrix(TY))
+    names(tY) <- paste("t", names(tY), sep="-")
+  stY <- as.data.frame(as.matrix(STY))
+    names(stY) <- paste("st", names(stY), sep="-")
+  tsY <- as.data.frame(as.matrix(TSY))
+    names(tsY) <- paste("ts", names(tsY), sep="-")
+    
+  reg <- cbind(Y, eXes, sX, tX, stX, tsX, sY, tY, stY, tsY, core$Stories, core$year)
   
-  #apply the nearest neighbor function
-  temp <- kNN(test[,2:3], k=50)
+  reg <- reg %>%
+    rename("year" = "core$year",
+           "stories" = "core$Stories") %>%
+    filter(!row_number() %in% seq(1,seed))
   
-  #Create Distance Matrix  
-  temp2 <- list((temp$dist[seed,]))
-  names(temp2) <- seed
-  dist <- append(dist, temp2)
+  mod1 <- lm(lnClose ~ . + factor(stories) -stories + factor(year) - year, data = reg)
   
-  #Create ID matrix
-  temp2 <- list((temp$id[seed,]))
-  names(temp2) <- seed
-  ID <- append(ID, temp2)
-  
-  
-  seed<-seed+1
-  print(i)
-}
-
-save(dist, ID, file="./Build/Output/neighbors_sf.RData")
