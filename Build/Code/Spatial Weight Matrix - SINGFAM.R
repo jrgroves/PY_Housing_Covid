@@ -10,8 +10,6 @@
 rm(list=ls())
 
 library(tidyverse)
-library(spatialreg)
-library(reshape)
 library(dbscan)
 
 #Load main data and apply any limitations
@@ -32,7 +30,10 @@ library(dbscan)
   #Pre-allocate the dist and ID lists  
     dist <- lapply(1:seed-1, function(i) as.integer(i+1))  
     ID <- lapply(1:seed-1, function(i) as.integer(i+1))
-  
+    ID0 <- lapply(1:seed-1, function(i) as.integer(i+1))    
+    ID2 <- lapply(1:seed-1, function(i) as.integer(i+1))    
+    
+
   #Loop to pull the IDs and Distances for only previous observations
     
     for(i in seq(1,nrow(core)-seed)){
@@ -44,20 +45,28 @@ library(dbscan)
       temp <- kNN(test[,c("lon", "lat")], k=nn)
       
       #Create Distance Matrix  
-      temp2 <- list((temp$dist[seed,]))
-      names(temp2) <- seed
-      dist <- append(dist, temp2)
+      temp.dist <- list((temp$dist[seed,]))
+      names(temp.dist) <- seed
+      dist <- append(dist, temp.dist)
       
       #Create ID matrix
-      temp2 <- list((temp$id[seed,]))
-      names(temp2) <- seed
-      ID <- append(ID, temp2)
+      temp.id <- list((temp$id[seed,]))
+      names(temp.id) <- seed
+      ID <- append(ID, temp.id)
+      
+      #Pull Out only dist = 0 neighbors
+      temp.0 <- sapply(temp.dist, function(x) x==0)
+      tt <- list(temp.id[[1]][temp.0])
+      ID0 <- append(ID0, tt)
+      
+      tt2 <- list(temp.id[[1]][temp.dist[[1]] != 0])
+      ID2 <- append(ID2, tt2)
       
       seed<-seed+1
       print(i)
     }
     
-    save(ID, dist, file="./Build/SingFam_NN.RData")
+    save(ID, ID0, ID2, dist, file="./Build/Output/SingFam_NN.RData")
   
 #Create Sparse Spatial Matrix based on however nearest neighbors were chosen previously
   
