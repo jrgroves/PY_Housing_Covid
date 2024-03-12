@@ -8,21 +8,14 @@ rm(list=ls())
 
 library(tidyverse)
 library(Matrix)
+library(matrixcalc)
 
 #Read in Cleaned Data, weight matrix, and filter for single family only
 
-  load("./Build/Output/CoreData.RData")
+
   load("./Build/Output/Space.RData")
   load("./Build/Output/Time.RData")
-  
-  rm(main.s, main.s2)
-  
-  core <- main %>%
-    filter(PropertyType == "Single Family") %>%
-    arrange(CloseDate) %>%
-    mutate(ID = 1:n()) 
-  rm(main)
-  
+
 #Create Main Spatial Weight Matrix
   
   neighbors <- 10
@@ -46,10 +39,35 @@ library(Matrix)
 
   #
   
+  
+  
 #Create Variables with spatial-temporal lags
+  load("./Build/Output/CoreData.RData")
+  rm(main.s, main.s2)
+  
+  core <- main %>%
+    filter(PropertyType == "Single Family") %>%
+    arrange(CloseDate) %>%
+    mutate(ID = 1:n()) 
+  rm(main)
+  
+  #Set the seed which are the observations that will be removed because they have no previous sales and determine the number of neighbors
+  seed <- ceiling(nrow(core) * .01)
+  nn <- 50
   
   eXes <- core %>%
-    select(BedsTotal, BathsTotal, Covid)
+    mutate(Excel_Cond = case_when(cond == "Excellent" ~ 1,
+                                  TRUE ~ 0),
+           AbAvg_Cond = case_when(cond == "Above Average" ~ 1,
+                                  TRUE ~ 0),
+           Fair_Cond = case_when(cond == "Fair" ~ 1,
+                                 TRUE ~ 0),
+           Avg_Cond = case_when(cond == "Average" ~ 1,
+                                TRUE ~ 0)) %>%
+    select(BedsTotal, BathsTotal, Covid, Age, Age2, livSQFT, par_area, beach, park, hospital,
+           airport, elem_sch, mid_sch, high_sch, per_white, per_black, per_asian, per_hawaian,
+           per_occupied, per_owner, Split, PUD, Townhouse, Duplex, MultiDwell,
+           Excel_Cond, AbAvg_Cond, Fair_Cond)
   
   X <- data.matrix(eXes, rownames.force = TRUE)
   Y <- data.matrix(core$lnClose, rownames.force = FALSE)
@@ -90,5 +108,22 @@ library(Matrix)
            "stories" = "core$Stories") %>%
     filter(!row_number() %in% seq(1,seed))
   
-  mod1 <- lm(lnClose ~ . + factor(stories) -stories + factor(year) - year, data = reg)
+  mod1 <- lm(lnClose ~ . + factor(stories) - stories + factor(year) - year, data = reg)
+  
+  ST <- S * TT
+  
+  ST_X <- ST %*% X
+  
+  st_X <- as.data.frame(as.matrix(ST_X))
+    names(st_X) <- paste("stx", names(st_X), sep="-")
+    
+  reg <- cbind(Y, eXes, st_X, core$Stories, core$year)
+  
+  reg <- reg %>%
+    rename("year" = "core$year",
+           "stories" = "core$Stories") %>%
+    filter(!row_number() %in% seq(1,seed))
+  
+  mod2 <- lm(lnClose ~ . + factor(stories) - stories + factor(year) - year, data = reg)
+  
   
