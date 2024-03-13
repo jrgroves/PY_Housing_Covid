@@ -9,6 +9,7 @@ rm(list=ls())
 library(tidyverse)
 library(Matrix)
 library(matrixcalc)
+library(stargazer)
 
 #Read in Cleaned Data, weight matrix, and filter for single family only
 
@@ -18,13 +19,13 @@ library(matrixcalc)
 
 #Create Main Spatial Weight Matrix
   
-  neighbors <- 10
-  w <- 1/neighbors
-  
   S <- s1+s2+s3+s4+s5+s6+s7+s8+s9+s10
-  S <- w * S  
   rm(list = grep("^s", ls(), value = TRUE, invert = FALSE))
   
+  rs<-rowSums(S)
+  rs[which(rs>0)] <- 1/rs[which(rs>0)]
+  
+  S <- S * rs #this row standardizes the matrix
   
 #Create Main Temporal Weight Matrix
  
@@ -37,7 +38,7 @@ library(matrixcalc)
   rm(temp)
   rm(list = grep("^D", ls(), value = TRUE, invert = FALSE))
 
-  #
+
   
 #Create Variables with spatial-temporal lags
   load("./Build/Output/CoreData.RData")
@@ -124,4 +125,4 @@ library(matrixcalc)
   
   mod2 <- lm(lnClose ~ . + factor(stories) - stories + factor(year) - year, data = reg)
   
-  
+  stargazer(mod1, mod2, type="html", out="./Analysis/R2.html")
