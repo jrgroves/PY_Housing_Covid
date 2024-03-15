@@ -124,7 +124,7 @@ load("./Build/Output/Space0_Condo.RData")
            "stories" = "core$Stories") %>%
     filter(!row_number() %in% seq(1,seed))
   
-  mod1.st <- lm(lnClose ~ . + factor(stories) - stories + factor(year) - year, data = reg)
+  mod1.st <- lm(lnClose ~ . + factor(stories) - stories, data = reg)
   
   ST <- S * TT
   
@@ -132,15 +132,20 @@ load("./Build/Output/Space0_Condo.RData")
  
   st_X <- as.data.frame(as.matrix(ST_X))
     names(st_X) <- paste("stx", names(st_X), sep="-")
+  
+  ST_Y <- ST %*% Y
     
-  reg <- cbind(Y, eXes, st_X, core$Stories, core$year)
+  st_Y <- as.data.frame(as.matrix(ST_Y))
+    names(st_Y) <- paste("stx", names(st_Y), sep="-")
+    
+  reg <- cbind(Y, eXes, st_X, st_Y, core$Stories, core$year)
   
   reg <- reg %>%
     rename("year" = "core$year",
            "stories" = "core$Stories") %>%
     filter(!row_number() %in% seq(1,seed))
   
-  mod2.st <- lm(lnClose ~ . + factor(stories) - stories + factor(year) - year, data = reg)
+  mod2.st <- lm(lnClose ~ . + factor(stories) - stories, data = reg)
  
   #Now for the in building neighbors only 
   
@@ -179,21 +184,27 @@ load("./Build/Output/Space0_Condo.RData")
            "stories" = "core$Stories") %>%
     filter(!row_number() %in% seq(1,seed))
   
-  mod1.s0t <- lm(lnClose ~ . + factor(stories) - stories + factor(year) - year, data = reg)
+  mod1.s0t <- lm(lnClose ~ . + factor(stories) - stories, data = reg)
  
   ST <- S * TT
   ST_X <- ST %*% X
   st_X <- as.data.frame(as.matrix(ST_X))
   names(st_X) <- paste("stx", names(st_X), sep="-")
  
-  reg <- cbind(Y, eXes, st_X, core$Stories, core$year)
+  ST_Y <- ST %*% Y
+  
+  st_Y <- as.data.frame(as.matrix(ST_Y))
+  names(st_Y) <- paste("stx", names(st_Y), sep="-")
+  
+  
+  reg <- cbind(Y, eXes, st_X, st_Y, core$Stories, core$year)
   
   reg <- reg %>%
     rename("year" = "core$year",
            "stories" = "core$Stories") %>%
     filter(!row_number() %in% seq(1,seed))
   
-  mod2.s0t <- lm(lnClose ~ . + factor(stories) - stories + factor(year) - year, data = reg)
+  mod2.s0t <- lm(lnClose ~ . + factor(stories) - stories, data = reg)
   
   
   stargazer(mod1.st, mod2.st, mod1.s0t, mod2.s0t, type="html", out = "./Analysis/R1.html")

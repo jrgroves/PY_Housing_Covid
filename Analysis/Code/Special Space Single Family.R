@@ -107,7 +107,7 @@ library(stargazer)
            "stories" = "core$Stories") %>%
     filter(!row_number() %in% seq(1,seed))
   
-  mod1 <- lm(lnClose ~ . + factor(stories) - stories + factor(year) - year, data = reg)
+  mod1 <- lm(lnClose ~ . + factor(stories) - stories - year, data = reg)
   
   ST <- S * TT
   
@@ -116,13 +116,18 @@ library(stargazer)
   st_X <- as.data.frame(as.matrix(ST_X))
     names(st_X) <- paste("stx", names(st_X), sep="-")
     
-  reg <- cbind(Y, eXes, st_X, core$Stories, core$year)
+  ST_Y <- ST %*% Y
+  
+  st_Y <- as.data.frame(as.matrix(ST_Y))
+  names(st_Y) <- paste("stx", names(st_Y), sep="-")
+    
+  reg <- cbind(Y, eXes, st_X, st_Y, core$Stories, core$year)
   
   reg <- reg %>%
     rename("year" = "core$year",
            "stories" = "core$Stories") %>%
     filter(!row_number() %in% seq(1,seed))
   
-  mod2 <- lm(lnClose ~ . + factor(stories) - stories + factor(year) - year, data = reg)
+  mod2 <- lm(lnClose ~ . + factor(stories) - stories - year, data = reg)
   
   stargazer(mod1, mod2, type="html", out="./Analysis/R2.html")
