@@ -28,14 +28,14 @@ d <- as.data.frame(table(factor(time))) #Determines the number of sales each day
 
 #sets the sales window for the creates of the T matrix, should be one day larger than the desired time frame.
 
-sale_win_d <- 61 #days window
+sale_win_d <- 121 #days window
 
 #Create Sparse Temporal Matrix 
    
   #Creation of the current sales matrix
     TT <- list()
 
-    for(i in seq(1:nrow(c))){
+    for(i in seq(1:nrow(d))){
       temp<-Matrix(nrow = d[i,2], ncol = d[i,2], data = 1, sparse = FALSE)
       TT <- append(TT, temp)
     }
@@ -43,34 +43,35 @@ sale_win_d <- 61 #days window
     
   #Creation of the remaining sales matrices for days
     
-    for(j in seq(2, sale_win_d)){
+    for(j in seq(1, sale_win_d)){
       TT <- list()    #Generate a clear list
       Dc <- Matrix(nrow = nrow(core), ncol = nrow(core), data = 0, sparse = TRUE) #Create a sparse nxn matrix
     
       #This creates block matrix with rows equal to observations and columns equal to previous sales
-      a<-d[(j-1),2] + 1
-      b<-a + d[j,2]
-      c<-1
-      e<-d[(j-1),2]
-
-      for(i in seq(2,4)){   #nrow(d)
-         
-         Dc[a:b, c:e]  <- 1
+      temp <- sum(d[1:j,2])
+      
+      a<-1
+      b<-7
+      
+      for(i in seq((j+1),nrow(d))){
+        ifelse(i==(j+1),
+               x <- a + temp,
+               x <- x + d[(i-1),2])
         
-         a <- b + 1
-         b <- b + d[i,2] + 1
-         
-         c <- e + 1
-         e <- e + d[i,2]
+        ifelse(i==(j+1),
+               y<-sum(d[1:i,2]),
+               y<-y+d[i,2])
         
-          
+         Dc[x:y, a:b]  <- 1
+         
+         a <- a + d[(i-j),2]
+         b <- b + d[(i-j+1),2]
       }
-      assign(paste0("D",(j-1)), Dc)
+      assign(paste0("D",(j)), Dc)
     }
     
-    Dc[1:20,1:20]
-    
-rm(core, d, TT, time, dist, ID, temp, i, j, x, y, r, main, D)
+
+rm(core, d, TT, time, temp, i, j, x, y, main)
     
 save.image("./Build/Output/Time_SF.RData")
 
@@ -95,42 +96,53 @@ core <- main %>%
   mutate(ID = 1:n()) 
 
 time <- core$CloseDate
-c <- as.data.frame(table(factor(time))) #Determines the number of sales each day
-sale_win <- 61  #sets the sales window for the creates of the T matrix, should be one day larger than the desired time frame.
+d <- as.data.frame(table(factor(time))) #Determines the number of sales each day
+
+#sets the sales window for the creates of the T matrix, should be one day larger than the desired time frame.
+
+sale_win_d <- 121 #days window
 
 #Create Sparse Temporal Matrix 
 
+#Creation of the current sales matrix
 TT <- list()
 
-#Creation of the current sales matrix
-
-for(i in seq(1:nrow(c))){
-  temp<-Matrix(nrow = c[i,2], ncol = c[i,2], data = 1, sparse = FALSE)
+for(i in seq(1:nrow(d))){
+  temp<-Matrix(nrow = d[i,2], ncol = d[i,2], data = 1, sparse = FALSE)
   TT <- append(TT, temp)
 }
 D0 <- bdiag(TT) 
 
-#Creation of the remaining sales matrices  
+#Creation of the remaining sales matrices for days
 
-for(j in seq(2, sale_win)){
-  TT <- list()
-  Dc <- Matrix(nrow = nrow(core), ncol = nrow(core), data = 0, sparse = TRUE)
+for(j in seq(1, sale_win_d)){
+  TT <- list()    #Generate a clear list
+  Dc <- Matrix(nrow = nrow(core), ncol = nrow(core), data = 0, sparse = TRUE) #Create a sparse nxn matrix
   
-  for(i in seq(j,nrow(c))){
-    temp <- Matrix(nrow = c[i,2], ncol = c[(i-1),2], data = 1, sparse = FALSE)
-    TT <- append(TT, temp)
+  #This creates block matrix with rows equal to observations and columns equal to previous sales
+  temp <- sum(d[1:j,2])
+  
+  a<-1
+  b<-7
+  
+  for(i in seq((j+1),nrow(d))){
+    ifelse(i==(j+1),
+           x <- a + temp,
+           x <- x + d[(i-1),2])
     
+    ifelse(i==(j+1),
+           y<-sum(d[1:i,2]),
+           y<-y+d[i,2])
+    
+    Dc[x:y, a:b]  <- 1
+    
+    a <- a + d[(i-j),2]
+    b <- b + d[(i-j+1),2]
   }
-  D <- bdiag(TT)
-  x <- dim(Dc)[1] - dim(D)[1] + 1
-  y <- dim(D)[2]
-  r <- dim(Dc)[1]
-  
-  Dc[x:r, 1:y]  <- D
-  
-  assign(paste0("D",(j-1)), Dc)
+  assign(paste0("D",(j)), Dc)
 }
 
-rm(core, c, TT, time, dist, ID, temp, i, j, x, y, r, main, D)
 
-save.image("./Build/Output/Time_CT.RData")
+rm(core, d, TT, time, temp, i, j, x, y, main)
+
+save.image("./Build/Output/Time_CD.RData")

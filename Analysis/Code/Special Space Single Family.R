@@ -21,17 +21,18 @@ library(stargazer)
   rs<-rowSums(S)
   rs[which(rs>0)] <- 1/rs[which(rs>0)]
   
-  Ss <- S * rs #this row standardizes the matrix
+  S <- S * rs #this row standardizes the matrix
   
 #Create Main Temporal Weight Matrix
-  load("./Build/Output/Time.RData")
+  load("./Build/Output/Time_SF.RData")
   
   temp <- list()
-  for(i in seq(1,59)){
+  for(i in seq(1,120)){
     temp<-append(temp,  eval(parse(text=paste0("D", i))))
   }
  
   TT <- Reduce('+', temp)
+  
   rm(temp)
   rm(list = grep("^D", ls(), value = TRUE, invert = FALSE))
 
@@ -49,13 +50,6 @@ library(stargazer)
   
   time <- core$CloseDate
   d <- as.data.frame(table(factor(time))) #Determines the number of sales each day
-  
-  y<-core$ln.r.close
-  
-  Wy <- Ss %*% y
-  
-  e <- TT * Ss
-  rs<-rowSums(e)
 
   #Set the seed which are the observations that will be removed because they have no previous sales and determine the number of neighbors
   seed <- ceiling(nrow(core) * .01)
@@ -128,7 +122,7 @@ library(stargazer)
   st_Y <- as.data.frame(as.matrix(ST_Y))
   names(st_Y) <- paste("stx", names(st_Y), sep="-")
     
-  reg <- cbind(Y, eXes, st_X, st_Y, core$Stories, core$year)
+  reg <- cbind(Y, eXes, st_Y, core$Stories, core$year)
   
   reg <- reg %>%
     rename("year" = "core$year",
