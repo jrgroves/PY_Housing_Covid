@@ -11,24 +11,21 @@ library(Matrix)
 library(matrixcalc)
 library(stargazer)
 
-#Read in Cleaned Data, weight matrix, and filter for single family only
-
-
-  load("./Build/Output/Space.RData")
-  load("./Build/Output/Time.RData")
-
 #Create Main Spatial Weight Matrix
+  load("./Build/Output/Space.RData")
   
-  S <- s1+s2+s3+s4+s5+s6+s7+s8+s9+s10
+  S <- s1+s2+s3+s4+s5+s6+s7+s8+s9+s10+s11+s12+s13+s14+s15
+  
   rm(list = grep("^s", ls(), value = TRUE, invert = FALSE))
   
   rs<-rowSums(S)
   rs[which(rs>0)] <- 1/rs[which(rs>0)]
   
-  S <- S * rs #this row standardizes the matrix
+  Ss <- S * rs #this row standardizes the matrix
   
 #Create Main Temporal Weight Matrix
- 
+  load("./Build/Output/Time.RData")
+  
   temp <- list()
   for(i in seq(1,59)){
     temp<-append(temp,  eval(parse(text=paste0("D", i))))
@@ -38,9 +35,7 @@ library(stargazer)
   rm(temp)
   rm(list = grep("^D", ls(), value = TRUE, invert = FALSE))
 
-
-  
-#Create Variables with spatial-temporal lags
+#Load Core Data and filter
   load("./Build/Output/CoreData.RData")
   rm(main.s, main.s2)
   
@@ -50,6 +45,18 @@ library(stargazer)
     mutate(ID = 1:n()) 
   rm(main)
   
+#Descriptive tables and data creation
+  
+  time <- core$CloseDate
+  d <- as.data.frame(table(factor(time))) #Determines the number of sales each day
+  
+  y<-core$ln.r.close
+  
+  Wy <- Ss %*% y
+  
+  e <- TT * Ss
+  rs<-rowSums(e)
+
   #Set the seed which are the observations that will be removed because they have no previous sales and determine the number of neighbors
   seed <- ceiling(nrow(core) * .01)
   nn <- 50
