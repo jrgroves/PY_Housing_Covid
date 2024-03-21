@@ -12,49 +12,72 @@ library(matrixcalc)
 library(stargazer)
 
 #Create Main Spatial Weight Matrix
-  load("./Build/Output/Space.RData")
+load("./Build/Output/Space.RData")
+
+S <- s1+s2+s3+s4+s5+s6+s7+s8+s9+s10+s11+s12+s13+s14+s15
+
+rm(list = grep("^s", ls(), value = TRUE, invert = FALSE))
+
+
+#Create Main Temporal Weight Matrix
+load("./Build/Output/Time_SF.RData")
+
+temp <- list()
+for(i in seq(1,120)){
+  temp<-append(temp,  eval(parse(text=paste0("D", i))))
+}
+
+TT <- Reduce('+', temp)
+
+rm(temp)
+rm(list = grep("^D", ls(), value = TRUE, invert = FALSE))
+
+#Row Standardization
   
-  S <- s1+s2+s3+s4+s5+s6+s7+s8+s9+s10+s11+s12+s13+s14+s15
+  ST <- S * TT
   
-  rm(list = grep("^s", ls(), value = TRUE, invert = FALSE))
+  rs<-rowSums(ST)
+  rs[which(rs>0)] <- 1/rs[which(rs>0)]
+  ST <- ST * rs #this row standardizes the matrix
+  
+  STT <- S%*%TT
+  rs<-rowSums(STT)
+  rs[which(rs>0)] <- 1/rs[which(rs>0)]
+  STT <- STT * rs #this row standardizes the matrix
+  
+  TTS <- TT%*%S
+  rs<-rowSums(TTS)
+  rs[which(rs>0)] <- 1/rs[which(rs>0)]
+  TTS <- TTS * rs #this row standardizes the matrix
   
   rs<-rowSums(S)
   rs[which(rs>0)] <- 1/rs[which(rs>0)]
-  
   S <- S * rs #this row standardizes the matrix
   
-#Create Main Temporal Weight Matrix
-  load("./Build/Output/Time_SF.RData")
-  
-  temp <- list()
-  for(i in seq(1,120)){
-    temp<-append(temp,  eval(parse(text=paste0("D", i))))
-  }
- 
-  TT <- Reduce('+', temp)
-  
-  rm(temp)
-  rm(list = grep("^D", ls(), value = TRUE, invert = FALSE))
+  rs<-rowSums(TT)
+  rs[which(rs>0)] <- 1/rs[which(rs>0)]
+  TT <- TT * rs #this row standardizes the matrix
+
 
 #Load Core Data and filter
-  load("./Build/Output/CoreData.RData")
-  rm(main.s, main.s2)
-  
-  core <- main %>%
-    filter(PropertyType == "Single Family") %>%
-    arrange(CloseDate) %>%
-    mutate(ID = 1:n()) 
-  rm(main)
-  
-#Descriptive tables and data creation
-  
-  time <- core$CloseDate
-  d <- as.data.frame(table(factor(time))) #Determines the number of sales each day
+load("./Build/Output/CoreData.RData")
+rm(main.s, main.s2)
 
-  #Set the seed which are the observations that will be removed because they have no previous sales and determine the number of neighbors
-  seed <- ceiling(nrow(core) * .01)
-  nn <- 50
-  
+core <- main %>%
+  filter(PropertyType == "Single Family") %>%
+  arrange(CloseDate) %>%
+  mutate(ID = 1:n()) 
+rm(main)
+
+#Descriptive tables and data creation
+
+time <- core$CloseDate
+d <- as.data.frame(table(factor(time))) #Determines the number of sales each day
+
+#Set the seed which are the observations that will be removed because they have no previous sales and determine the number of neighbors
+seed <- ceiling(nrow(core) * .01)
+
+
   eXes <- core %>%
     mutate(Excel_Cond = case_when(cond == "Excellent" ~ 1,
                                   TRUE ~ 0),
@@ -75,13 +98,13 @@ library(stargazer)
   
   TX <- TT %*% X
   SX <- S %*% X
-  STX <- S %*% TT %*% X
-  TSX <- TT %*% S %*% X
+  STX <- STT %*% X
+  TSX <- TTS %*% X
   
   TY <- TT %*% Y
   SY <- S %*% Y
-  STY <- S %*% TT %*% Y
-  TSY <- TT %*% S %*% Y
+  STY <- STT %*% Y
+  TSY <- TTS %*% Y
 
   sX <- as.data.frame(as.matrix(SX))
     names(sX) <- paste("s", names(sX), sep="-")
@@ -108,10 +131,10 @@ library(stargazer)
            "stories" = "core$Stories") %>%
     filter(!row_number() %in% seq(1,seed))
   
-  mod1 <- lm(lnClose ~ . + factor(stories) - stories - year, data = reg)
+  mod1 <- lm(lnClose ~ . + factor(stories) + factor(year) - stories - year, data = reg)
+  mod1a <- lm(lnClose ~ . + factor(stories) + factor(year) - stories - year, data = subset(reg, stY>0))
   
-  ST <- S * TT
-  
+ 
   ST_X <- ST %*% X
   
   st_X <- as.data.frame(as.matrix(ST_X))
@@ -129,6 +152,7 @@ library(stargazer)
            "stories" = "core$Stories") %>%
     filter(!row_number() %in% seq(1,seed))
   
-  mod2 <- lm(lnClose ~ . + factor(stories) - stories - year, data = reg)
+  mod2 <- lm(lnClose ~ . + factor(stories) + factor(year) - stories - year, data = reg)
+  mod2a <- lm(lnClose ~ . + factor(stories) + factor(year) - stories - year, data = subset(reg, st_Y>0))
   
-  stargazer(mod1, mod2, type="html", out="./Analysis/R2.html")
+  stargazer(mod1, mod1a, mod2, mod2a, type="html", out="./Analysis/R2.html")
