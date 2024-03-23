@@ -138,14 +138,14 @@ rm(list = grep("^D", ls(), value = TRUE, invert = FALSE))
     labs(x = "Month",
          y = "Average Real Closing Price",
          caption = "Veritcal line represents start of COVID-19 pandemic. Hoizontal segments are yearly averages",
-         title = "Average Real Closing Price by Month (Full Sample)") +
+         title = "Average Real Closing Price by Month for Single Family Units") +
     theme_bw()
   
   F2<-ggplot(sub.mon) +
-    geom_line(aes(x = mon.yr, y=mean.x, group = 1, color = "Focus Unit"), size = 1) +
+    geom_line(aes(x = mon.yr, y=mean.x, group = 1, color = "Focus Unit"), linewidthF1 = 1) +
     geom_vline(aes(xintercept = "2020-03")) +
-    geom_line(aes(x = mon.yr, y=st_mean, group = 2, color = "Spatial-Temporal Average"), size = .75)+
-    geom_line(aes(x = mon.yr, y=s_mean, group = 3, color = "Spatial Average"), size = .75)+
+    geom_line(aes(x = mon.yr, y=st_mean, group = 2, color = "Spatial-Temporal Average"), linewidth = .75, alpha = .5)+
+    geom_line(aes(x = mon.yr, y=s_mean, group = 3, color = "Spatial Average"), linewidth = .75, alpha = .5)+
     scale_x_discrete(guide = guide_axis(angle = 90),
                      breaks = sub.mon$mon.yr[seq(1, length(sub.mon$mon.yr), by = 2)]) +
     scale_y_continuous(breaks = seq(800000, 1600000, 100000))+

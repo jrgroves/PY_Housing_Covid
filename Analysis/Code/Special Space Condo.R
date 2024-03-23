@@ -120,7 +120,7 @@ library(stargazer)
                                  TRUE ~ 0),
            Avg_Cond = case_when(cond == "Average" ~ 1,
                                 TRUE ~ 0)) %>%
-    select(BedsTotal, BathsTotal, Covid2, Age, Age2, livSQFT, par_area, beach, park, hospital,
+    select(BedsTotal, BathsTotal, Covid, Age, Age2, livSQFT, par_area, beach, park, hospital,
            airport, elem_sch, mid_sch, high_sch, per_white, per_black, per_asian, per_hawaian,
            per_occupied, per_owner, Split, LowRise, HighRise, PUD, Condotel, SingleFam, Townhouse, 
            WalkUP, Excel_Cond, AbAvg_Cond, Fair_Cond)
